@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Markdown styling */
+.prose h1 { @apply text-2xl font-bold mt-6 mb-4; }
+.prose h2 { @apply text-xl font-bold mt-5 mb-3; }
+.prose h3 { @apply text-lg font-semibold mt-4 mb-2; }
+.prose p { @apply mb-4 leading-relaxed; }
+.prose ul { @apply list-disc list-inside mb-4 space-y-1; }
+.prose ol { @apply list-decimal list-inside mb-4 space-y-1; }
+.prose strong { @apply font-semibold; }
+.prose code { @apply bg-gray-100 px-1 py-0.5 rounded text-sm; }
+.prose pre { @apply bg-gray-100 p-4 rounded-lg overflow-x-auto mb-4; }
