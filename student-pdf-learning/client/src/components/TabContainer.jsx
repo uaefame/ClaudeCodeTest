@@ -19,7 +19,7 @@ function TabContainer({ results }) {
       case 'infographic':
         return <InfographicTab data={results.infographic} />
       case 'audio':
-        return <AudioTab script={results.audioScript} />
+        return <AudioTab audioData={results.audioScript} />
       case 'interactive':
         return <InteractiveTab quiz={results.quiz} />
       case 'report':

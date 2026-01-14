@@ -8,6 +8,21 @@ const textModel = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
 // Image model for infographic generation (Nano Banana Pro)
 const imageModel = genAI.getGenerativeModel({ model: 'nano-banana-pro-preview' });
 
+// TTS model for audio generation (Gemini 2.5 Pro TTS)
+const ttsModel = genAI.getGenerativeModel({
+  model: 'gemini-2.5-pro-preview-tts',
+  generationConfig: {
+    responseModalities: ['AUDIO'],
+    speechConfig: {
+      voiceConfig: {
+        prebuiltVoiceConfig: {
+          voiceName: 'Kore'  // Natural, warm voice
+        }
+      }
+    }
+  }
+});
+
 async function generateReport(pdfData) {
   const prompt = `You are an educational content expert. Analyze the following document content and create a comprehensive study report.
 
@@ -108,9 +123,40 @@ Document Content:
 ${pdfData.text}`;
 
   try {
-    const result = await textModel.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    // First generate the script text
+    const scriptResult = await textModel.generateContent(prompt);
+    const scriptResponse = await scriptResult.response;
+    const script = scriptResponse.text();
+
+    // Then generate audio using Gemini TTS
+    try {
+      const ttsPrompt = `Read the following educational script in a warm, engaging, and natural tone as if you're a friendly teacher explaining to a student:\n\n${script}`;
+
+      const audioResult = await ttsModel.generateContent(ttsPrompt);
+      const audioResponse = await audioResult.response;
+
+      // Extract audio data from response
+      if (audioResponse.candidates && audioResponse.candidates[0].content.parts) {
+        for (const part of audioResponse.candidates[0].content.parts) {
+          if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+            return {
+              script: script,
+              audio: {
+                mimeType: part.inlineData.mimeType,
+                data: part.inlineData.data
+              }
+            };
+          }
+        }
+      }
+
+      // Fallback to script only if no audio generated
+      console.log('No audio data in TTS response, falling back to script only');
+      return { script: script, audio: null };
+    } catch (ttsError) {
+      console.log('TTS generation fallback:', ttsError.message);
+      return { script: script, audio: null };
+    }
   } catch (error) {
     console.error('Audio script generation error:', error);
     throw new Error('Failed to generate audio script: ' + error.message);
