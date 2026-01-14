@@ -2,11 +2,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Text model for content generation
-const textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+// Text model for content generation (Gemini 3 Pro)
+const textModel = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
 
 // Image model for infographic generation (Nano Banana Pro)
-const imageModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp-image-generation' });
+const imageModel = genAI.getGenerativeModel({ model: 'nano-banana-pro-preview' });
 
 async function generateReport(pdfData) {
   const prompt = `You are an educational content expert. Analyze the following document content and create a comprehensive study report.
