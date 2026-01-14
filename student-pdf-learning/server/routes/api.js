@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const pdfParser = require('../services/pdfParser');
-const geminiService = require('../services/geminiService');
+const contentGenerator = require('../services/contentGenerator');
 
 const router = express.Router();
 
@@ -84,6 +84,53 @@ router.get('/status/:jobId', (req, res) => {
   res.json(result);
 });
 
+// Process a previously uploaded PDF (separate from upload)
+router.post('/process', async (req, res) => {
+  try {
+    const { jobId } = req.body;
+
+    if (!jobId) {
+      return res.status(400).json({ error: 'jobId is required' });
+    }
+
+    const job = processingResults.get(jobId);
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    if (job.status === 'processing') {
+      return res.status(400).json({ error: 'Job is already being processed' });
+    }
+
+    if (job.status === 'completed') {
+      return res.status(400).json({ error: 'Job has already been processed' });
+    }
+
+    if (!job.filePath || !fs.existsSync(job.filePath)) {
+      return res.status(400).json({ error: 'PDF file not found. Please upload again.' });
+    }
+
+    // Reset job status and start processing
+    job.status = 'processing';
+    job.progress = 0;
+    job.error = null;
+    processingResults.set(jobId, { ...job });
+
+    // Start async processing
+    processDocument(jobId, job.filePath);
+
+    res.json({
+      success: true,
+      jobId,
+      message: 'Processing started.'
+    });
+  } catch (error) {
+    console.error('Process error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Process document asynchronously
 async function processDocument(jobId, filePath) {
   try {
@@ -96,44 +143,20 @@ async function processDocument(jobId, filePath) {
 
     const pdfText = await pdfParser.extractText(filePath);
 
-    // Step 2: Generate report/summary
-    job.progress = 25;
-    job.step = 'Generating detailed report...';
-    processingResults.set(jobId, { ...job });
+    // Step 2-5: Generate all content using contentGenerator service
+    const progressCallback = (step, progress) => {
+      job.progress = progress;
+      job.step = step;
+      processingResults.set(jobId, { ...job });
+    };
 
-    const report = await geminiService.generateReport(pdfText);
-
-    // Step 3: Generate quiz questions
-    job.progress = 45;
-    job.step = 'Creating quiz questions...';
-    processingResults.set(jobId, { ...job });
-
-    const quiz = await geminiService.generateQuiz(pdfText);
-
-    // Step 4: Generate audio script
-    job.progress = 65;
-    job.step = 'Creating audio explanation...';
-    processingResults.set(jobId, { ...job });
-
-    const audioScript = await geminiService.generateAudioScript(pdfText);
-
-    // Step 5: Generate infographic
-    job.progress = 85;
-    job.step = 'Generating infographic...';
-    processingResults.set(jobId, { ...job });
-
-    const infographic = await geminiService.generateInfographic(pdfText);
+    const results = await contentGenerator.generateAllContent(pdfText, progressCallback);
 
     // Complete
     job.status = 'completed';
     job.progress = 100;
     job.step = 'Complete!';
-    job.results = {
-      report,
-      quiz,
-      audioScript,
-      infographic
-    };
+    job.results = results;
     processingResults.set(jobId, { ...job });
 
   } catch (error) {
