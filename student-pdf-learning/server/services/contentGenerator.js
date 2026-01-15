@@ -8,7 +8,7 @@ const geminiService = require('./geminiService');
 async function generateAllContent(pdfData, progressCallback = null) {
   const results = {
     report: null,
-    quiz: null,
+    interactiveLearning: null,
     audioScript: null,
     infographic: null
   };
@@ -23,9 +23,9 @@ async function generateAllContent(pdfData, progressCallback = null) {
   updateProgress('Generating detailed report...', 25);
   results.report = await geminiService.generateReport(pdfData);
 
-  // Generate quiz
-  updateProgress('Creating quiz questions...', 45);
-  results.quiz = await geminiService.generateQuiz(pdfData);
+  // Generate interactive learning content
+  updateProgress('Creating interactive learning experience...', 45);
+  results.interactiveLearning = await geminiService.generateInteractiveLearning(pdfData);
 
   // Generate audio script
   updateProgress('Creating audio explanation...', 65);
@@ -42,8 +42,8 @@ async function generateReport(pdfData) {
   return await geminiService.generateReport(pdfData);
 }
 
-async function generateQuiz(pdfData) {
-  return await geminiService.generateQuiz(pdfData);
+async function generateInteractiveLearning(pdfData) {
+  return await geminiService.generateInteractiveLearning(pdfData);
 }
 
 async function generateAudioScript(pdfData) {
@@ -57,7 +57,7 @@ async function generateInfographic(pdfData) {
 module.exports = {
   generateAllContent,
   generateReport,
-  generateQuiz,
+  generateInteractiveLearning,
   generateAudioScript,
   generateInfographic
 };

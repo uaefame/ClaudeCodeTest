@@ -2,6 +2,40 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Convert PCM audio to WAV format for browser playback
+function pcmToWav(pcmBase64, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) {
+  const pcmData = Buffer.from(pcmBase64, 'base64');
+  const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+  const blockAlign = numChannels * (bitsPerSample / 8);
+  const dataSize = pcmData.length;
+  const headerSize = 44;
+  const fileSize = headerSize + dataSize;
+
+  const wavBuffer = Buffer.alloc(fileSize);
+
+  // RIFF header
+  wavBuffer.write('RIFF', 0);
+  wavBuffer.writeUInt32LE(fileSize - 8, 4);
+  wavBuffer.write('WAVE', 8);
+
+  // fmt subchunk
+  wavBuffer.write('fmt ', 12);
+  wavBuffer.writeUInt32LE(16, 16); // Subchunk1Size (16 for PCM)
+  wavBuffer.writeUInt16LE(1, 20); // AudioFormat (1 for PCM)
+  wavBuffer.writeUInt16LE(numChannels, 22);
+  wavBuffer.writeUInt32LE(sampleRate, 24);
+  wavBuffer.writeUInt32LE(byteRate, 28);
+  wavBuffer.writeUInt16LE(blockAlign, 32);
+  wavBuffer.writeUInt16LE(bitsPerSample, 34);
+
+  // data subchunk
+  wavBuffer.write('data', 36);
+  wavBuffer.writeUInt32LE(dataSize, 40);
+  pcmData.copy(wavBuffer, 44);
+
+  return wavBuffer.toString('base64');
+}
+
 // Text model for content generation (Gemini 3 Pro)
 const textModel = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' });
 
@@ -48,42 +82,74 @@ ${pdfData.text}`;
   }
 }
 
-async function generateQuiz(pdfData) {
-  const prompt = `You are an educational quiz creator. Based on the following document content, create an interactive quiz to test understanding.
+async function generateInteractiveLearning(pdfData) {
+  const prompt = `You are an expert educational content designer. Based on the following document, create an interactive learning experience.
+
+IMPORTANT: Create content that helps students LEARN the concepts first through examples and interaction, then TEST their understanding with practice questions. The practice questions should use NEW examples NOT from the original document.
 
 Create a JSON response with exactly this structure:
 {
-  "title": "Quiz title based on the content",
-  "questions": [
+  "title": "Learning Module Title",
+  "introduction": "A brief, engaging introduction to what the student will learn",
+  "concepts": [
     {
       "id": 1,
+      "title": "Concept Name",
+      "explanation": "Clear, simple explanation of the concept (2-3 sentences)",
+      "keyPoint": "The single most important thing to remember",
+      "examples": [
+        {
+          "title": "Example 1 Title",
+          "scenario": "A real-world scenario or situation",
+          "walkthrough": "Step-by-step explanation of how the concept applies",
+          "interactive": {
+            "type": "reveal",
+            "question": "What do you think happens next?",
+            "answer": "The revealed answer with explanation"
+          }
+        },
+        {
+          "title": "Example 2 Title",
+          "scenario": "Another scenario",
+          "walkthrough": "Explanation",
+          "interactive": {
+            "type": "choice",
+            "question": "Which option is correct?",
+            "options": ["Option A", "Option B", "Option C"],
+            "correctIndex": 0,
+            "explanation": "Why this is correct"
+          }
+        }
+      ],
+      "funFact": "An interesting or surprising fact related to this concept"
+    }
+  ],
+  "practiceQuestions": [
+    {
+      "id": 1,
+      "conceptId": 1,
       "type": "multiple_choice",
-      "question": "The question text",
+      "scenario": "A NEW scenario not from the document",
+      "question": "Question about applying the concept",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": 0,
-      "explanation": "Why this answer is correct",
+      "explanation": "Detailed explanation of why this is correct",
       "hint": "A helpful hint"
     },
     {
       "id": 2,
-      "type": "fill_blank",
-      "question": "Complete the sentence: The ___ is important because...",
-      "answer": "correct word",
-      "explanation": "Why this is the answer",
-      "hint": "A helpful hint"
-    },
-    {
-      "id": 3,
-      "type": "true_false",
-      "question": "Statement to evaluate",
-      "correctAnswer": true,
-      "explanation": "Why this is true/false",
-      "hint": "A helpful hint"
+      "conceptId": 1,
+      "type": "apply",
+      "scenario": "A situation where student must apply knowledge",
+      "question": "What would you do in this situation?",
+      "correctApproach": "The correct approach explained",
+      "commonMistakes": ["Common mistake 1", "Common mistake 2"]
     }
-  ]
+  ],
+  "summary": "A brief recap of all concepts learned"
 }
 
-Generate 8-10 varied questions covering the main concepts. Include a mix of multiple choice (5-6), fill in the blank (2-3), and true/false (1-2) questions.
+Generate 3-4 main concepts from the document. Each concept should have 4-5 diverse examples with interactive elements. Create 6-8 practice questions using COMPLETELY NEW scenarios (not from the original document) to truly test understanding.
 
 Document Content:
 ${pdfData.text}`;
@@ -100,8 +166,8 @@ ${pdfData.text}`;
     }
     throw new Error('No valid JSON found in response');
   } catch (error) {
-    console.error('Quiz generation error:', error);
-    throw new Error('Failed to generate quiz: ' + error.message);
+    console.error('Interactive learning generation error:', error);
+    throw new Error('Failed to generate interactive learning content: ' + error.message);
   }
 }
 
@@ -139,11 +205,13 @@ ${pdfData.text}`;
       if (audioResponse.candidates && audioResponse.candidates[0].content.parts) {
         for (const part of audioResponse.candidates[0].content.parts) {
           if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+            // Convert PCM to WAV for browser compatibility
+            const wavData = pcmToWav(part.inlineData.data, 24000, 1, 16);
             return {
               script: script,
               audio: {
-                mimeType: part.inlineData.mimeType,
-                data: part.inlineData.data
+                mimeType: 'audio/wav',
+                data: wavData
               }
             };
           }
@@ -224,7 +292,7 @@ Style: Modern, clean, colorful educational infographic with icons, clear hierarc
 
 module.exports = {
   generateReport,
-  generateQuiz,
+  generateInteractiveLearning,
   generateAudioScript,
   generateInfographic
 };
