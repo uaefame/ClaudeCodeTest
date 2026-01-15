@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 function ReportTab({ content }) {
   if (!content) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-navy-400">
         No report available
       </div>
     )
@@ -50,14 +50,18 @@ function ReportTab({ content }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Study Report</h2>
-          <p className="text-gray-600 mt-1">Comprehensive explanation of the concepts</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-readwrite-50 rounded-full mb-2">
+            <span className="w-2 h-2 bg-readwrite rounded-full"></span>
+            <span className="text-readwrite-700 text-sm font-medium">Read/Write Learning</span>
+          </div>
+          <h2 className="text-xl font-bold text-navy-800 font-heading">Study Report</h2>
+          <p className="text-navy-500 mt-1">Comprehensive explanation of the concepts</p>
         </div>
 
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-navy-200 text-navy-600 rounded-lg hover:bg-navy-50 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -66,7 +70,7 @@ function ReportTab({ content }) {
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-readwrite text-white rounded-lg hover:bg-readwrite-600 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -79,28 +83,28 @@ function ReportTab({ content }) {
       {/* Report Content */}
       <div
         id="report-content"
-        className="bg-white border rounded-xl p-8 prose max-w-none"
+        className="bg-white border border-navy-100 rounded-xl p-8 prose max-w-none"
       >
         <ReactMarkdown
           components={{
-            h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-gray-900 border-b-2 border-indigo-500 pb-2">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-xl font-bold mt-5 mb-3 text-gray-800">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-lg font-semibold mt-4 mb-2 text-gray-700">{children}</h3>,
-            p: ({ children }) => <p className="mb-4 leading-relaxed text-gray-600">{children}</p>,
-            ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2 text-gray-600">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2 text-gray-600">{children}</ol>,
+            h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-navy-900 border-b-2 border-readwrite pb-2 font-heading">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-xl font-bold mt-5 mb-3 text-navy-800 font-heading">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-lg font-semibold mt-4 mb-2 text-navy-700 font-heading">{children}</h3>,
+            p: ({ children }) => <p className="mb-4 leading-relaxed text-navy-600">{children}</p>,
+            ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2 text-navy-600">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2 text-navy-600">{children}</ol>,
             li: ({ children }) => <li className="ml-2">{children}</li>,
-            strong: ({ children }) => <strong className="font-semibold text-gray-800">{children}</strong>,
+            strong: ({ children }) => <strong className="font-semibold text-navy-800">{children}</strong>,
             code: ({ children, className }) => {
               const isBlock = className?.includes('language-')
               if (isBlock) {
-                return <code className="block bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm">{children}</code>
+                return <code className="block bg-navy-50 p-4 rounded-lg overflow-x-auto text-sm">{children}</code>
               }
-              return <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm text-indigo-600">{children}</code>
+              return <code className="bg-navy-50 px-1.5 py-0.5 rounded text-sm text-readwrite">{children}</code>
             },
-            pre: ({ children }) => <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto mb-4">{children}</pre>,
+            pre: ({ children }) => <pre className="bg-navy-50 p-4 rounded-lg overflow-x-auto mb-4">{children}</pre>,
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-indigo-500 pl-4 italic text-gray-600 my-4">
+              <blockquote className="border-l-4 border-readwrite pl-4 italic text-navy-600 my-4">
                 {children}
               </blockquote>
             ),
@@ -112,9 +116,9 @@ function ReportTab({ content }) {
 
       {/* Table of Contents (if content is long) */}
       {content.length > 2000 && (
-        <div className="bg-indigo-50 rounded-lg p-4">
-          <h3 className="font-semibold text-indigo-800 mb-2">Quick Navigation</h3>
-          <p className="text-sm text-indigo-600">
+        <div className="bg-readwrite-50 rounded-lg p-4">
+          <h3 className="font-semibold text-readwrite-700 mb-2">Quick Navigation</h3>
+          <p className="text-sm text-readwrite-600">
             Use Ctrl+F (or Cmd+F on Mac) to search for specific topics in this report.
           </p>
         </div>

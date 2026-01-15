@@ -103,14 +103,21 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
     poll()
   }
 
+  const varkSteps = [
+    { name: 'Visual', color: 'visual' },
+    { name: 'Audio', color: 'audio' },
+    { name: 'Read/Write', color: 'readwrite' },
+    { name: 'Kinesthetic', color: 'kinesthetic' }
+  ]
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8">
+    <div className="bg-white rounded-xl shadow-lg p-8 border border-navy-100">
       {!isProcessing ? (
         <div
           className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
             dragActive
-              ? 'border-indigo-500 bg-indigo-50'
-              : 'border-gray-300 hover:border-indigo-400'
+              ? 'border-visual bg-visual-50'
+              : 'border-navy-200 hover:border-visual-300'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -128,7 +135,7 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
           <div className="space-y-4">
             <div className="flex justify-center">
               <svg
-                className={`w-16 h-16 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`}
+                className={`w-16 h-16 ${dragActive ? 'text-visual' : 'text-navy-300'}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -143,27 +150,37 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
             </div>
 
             <div>
-              <p className="text-lg text-gray-700">
+              <p className="text-lg text-navy-700">
                 Drag and drop your PDF here, or{' '}
                 <button
                   onClick={() => inputRef.current?.click()}
-                  className="text-indigo-600 font-semibold hover:text-indigo-800"
+                  className="text-visual font-semibold hover:text-visual-600"
                 >
                   browse
                 </button>
               </p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-navy-400 mt-2">
                 Supports homework assignments and textbook chapters (max 10MB)
               </p>
+            </div>
+
+            {/* VARK Preview */}
+            <div className="flex justify-center gap-3 mt-6 pt-6 border-t border-navy-100">
+              {varkSteps.map((step) => (
+                <div key={step.name} className="flex items-center gap-1.5">
+                  <span className={`w-2.5 h-2.5 rounded-full bg-${step.color}`}></span>
+                  <span className="text-xs text-navy-400">{step.name}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       ) : (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-visual-100 rounded-full mb-4">
               <svg
-                className="w-8 h-8 text-indigo-600 animate-spin"
+                className="w-8 h-8 text-visual animate-spin"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -182,38 +199,46 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Processing your PDF</h3>
-            <p className="text-gray-600 mt-1">{fileName}</p>
+            <h3 className="text-lg font-semibold text-navy-800 font-heading">Generating Your Learning Materials</h3>
+            <p className="text-navy-500 mt-1">{fileName}</p>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{progress.step}</span>
-              <span className="font-medium text-indigo-600">{progress.percent}%</span>
+              <span className="text-navy-600">{progress.step}</span>
+              <span className="font-medium text-visual">{progress.percent}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-navy-100 rounded-full h-3">
               <div
-                className="bg-indigo-600 h-3 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-visual via-audio via-readwrite to-kinesthetic h-3 rounded-full transition-all duration-500"
                 style={{ width: `${progress.percent}%` }}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-4 text-center text-sm">
-            {['Report', 'Quiz', 'Audio', 'Infographic'].map((item, i) => (
-              <div
-                key={item}
-                className={`p-3 rounded-lg ${
-                  progress.percent > (i + 1) * 20
-                    ? 'bg-green-100 text-green-700'
-                    : progress.percent > i * 20
-                    ? 'bg-indigo-100 text-indigo-700'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                {item}
-              </div>
-            ))}
+            {varkSteps.map((step, i) => {
+              const isComplete = progress.percent > (i + 1) * 20
+              const isActive = progress.percent > i * 20 && progress.percent <= (i + 1) * 20
+
+              return (
+                <div
+                  key={step.name}
+                  className={`p-3 rounded-lg transition-all ${
+                    isComplete
+                      ? `bg-${step.color}-100 text-${step.color}-700`
+                      : isActive
+                      ? `bg-${step.color}-50 text-${step.color} ring-2 ring-${step.color}`
+                      : 'bg-navy-50 text-navy-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full bg-${step.color} ${isActive ? 'animate-pulse' : ''}`}></span>
+                    <span>{step.name}</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

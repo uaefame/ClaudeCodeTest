@@ -22,36 +22,66 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-navy-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-indigo-600">
-            Student PDF Learning Platform
-          </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Upload your homework or textbook chapter to generate learning materials
-          </p>
+      <header className="bg-navy-800 shadow-lg">
+        <div className="max-w-6xl mx-auto px-4 py-5">
+          <div className="flex items-center gap-3">
+            {/* Masari Logo - Four VARK paths */}
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 h-8 bg-visual rounded-full transform -rotate-12"></div>
+              <div className="w-2 h-8 bg-audio rounded-full transform -rotate-4"></div>
+              <div className="w-2 h-8 bg-readwrite rounded-full transform rotate-4"></div>
+              <div className="w-2 h-8 bg-kinesthetic rounded-full transform rotate-12"></div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white font-heading tracking-tight">
+                Masari
+              </h1>
+              <p className="text-navy-300 text-sm font-body">
+                Learn Your Way
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
+      {/* VARK Color Bar */}
+      <div className="h-1 flex">
+        <div className="flex-1 bg-visual"></div>
+        <div className="flex-1 bg-audio"></div>
+        <div className="flex-1 bg-readwrite"></div>
+        <div className="flex-1 bg-kinesthetic"></div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {!results && (
-          <FileUpload
-            onProcessingStart={handleProcessingStart}
-            onProcessingComplete={handleProcessingComplete}
-            onProgressUpdate={handleProgressUpdate}
-            isProcessing={isProcessing}
-            progress={progress}
-          />
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-navy-800 font-heading mb-2">
+                Personalized Learning, Your Way
+              </h2>
+              <p className="text-navy-500 font-body max-w-2xl mx-auto">
+                Upload your homework or textbook chapter to generate learning materials
+                tailored to your VARK learning style
+              </p>
+            </div>
+            <FileUpload
+              onProcessingStart={handleProcessingStart}
+              onProcessingComplete={handleProcessingComplete}
+              onProgressUpdate={handleProgressUpdate}
+              isProcessing={isProcessing}
+              progress={progress}
+            />
+          </div>
         )}
 
         {results && (
           <div className="space-y-4">
             <button
               onClick={() => setResults(null)}
-              className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors"
+              className="flex items-center gap-2 text-visual hover:text-visual-700 transition-colors font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -64,9 +94,32 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 text-center text-gray-500 text-sm">
-          Powered by Google Gemini AI
+      <footer className="bg-navy-800 border-t border-navy-700">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-navy-300 text-sm">
+              <span>Powered by</span>
+              <span className="text-white font-medium">Google Gemini AI</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-3 h-3 bg-visual rounded-full"></span>
+                <span className="text-navy-400">Visual</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-3 h-3 bg-audio rounded-full"></span>
+                <span className="text-navy-400">Audio</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-3 h-3 bg-readwrite rounded-full"></span>
+                <span className="text-navy-400">Read/Write</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-3 h-3 bg-kinesthetic rounded-full"></span>
+                <span className="text-navy-400">Kinesthetic</span>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

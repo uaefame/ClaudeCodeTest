@@ -168,7 +168,7 @@ function AudioTab({ audioData }) {
 
   if (!script && !hasGeminiAudio) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-navy-400">
         No audio available
       </div>
     )
@@ -177,14 +177,18 @@ function AudioTab({ audioData }) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-800">Audio Explanation</h2>
-        <p className="text-gray-600 mt-1">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-audio-50 rounded-full mb-2">
+          <span className="w-2 h-2 bg-audio rounded-full"></span>
+          <span className="text-audio-700 text-sm font-medium">Audio Learning</span>
+        </div>
+        <h2 className="text-xl font-bold text-navy-800 font-heading">Audio Explanation</h2>
+        <p className="text-navy-500 mt-1">
           {hasGeminiAudio
             ? 'AI-generated natural voice narration'
             : 'Listen to a narrated explanation of the concepts'}
         </p>
         {hasGeminiAudio && (
-          <span className="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+          <span className="inline-block mt-2 px-3 py-1 bg-audio-100 text-audio-700 text-xs rounded-full">
             Powered by Gemini TTS
           </span>
         )}
@@ -194,7 +198,7 @@ function AudioTab({ audioData }) {
       {hasGeminiAudio && <audio ref={audioRef} />}
 
       {/* Audio Player Controls */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-audio-500 to-audio-600 rounded-xl p-6 text-white">
         {/* Progress Bar */}
         <div className="mb-6">
           <div
@@ -230,7 +234,7 @@ function AudioTab({ audioData }) {
 
           <button
             onClick={isPlaying ? handlePause : handlePlay}
-            className="p-4 rounded-full bg-white text-indigo-600 hover:bg-gray-100 transition-colors shadow-lg"
+            className="p-4 rounded-full bg-white text-audio hover:bg-gray-100 transition-colors shadow-lg"
           >
             {isPlaying ? (
               <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
@@ -261,19 +265,19 @@ function AudioTab({ audioData }) {
 
       {/* Voice Settings - Only show for Web Speech API fallback */}
       {useWebSpeech && !hasGeminiAudio && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-          <h3 className="font-semibold text-gray-700">Voice Settings (Browser TTS)</h3>
+        <div className="bg-navy-50 rounded-lg p-4 space-y-4">
+          <h3 className="font-semibold text-navy-700">Voice Settings (Browser TTS)</h3>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Voice</label>
+              <label className="block text-sm text-navy-600 mb-1">Voice</label>
               <select
                 value={selectedVoice?.name || ''}
                 onChange={(e) => {
                   const voice = voices.find(v => v.name === e.target.value)
                   setSelectedVoice(voice)
                 }}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full p-2 border border-navy-200 rounded-lg focus:ring-2 focus:ring-audio focus:border-audio"
               >
                 {voices.map((voice) => (
                   <option key={voice.name} value={voice.name}>
@@ -284,7 +288,7 @@ function AudioTab({ audioData }) {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">
+              <label className="block text-sm text-navy-600 mb-1">
                 Speed: {rate}x
               </label>
               <input
@@ -311,7 +315,7 @@ function AudioTab({ audioData }) {
               link.download = 'audio-explanation.wav'
               link.click()
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-audio text-white rounded-lg hover:bg-audio-600 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -323,9 +327,9 @@ function AudioTab({ audioData }) {
 
       {/* Script Display */}
       {script && (
-        <div className="bg-white border rounded-lg p-4">
-          <h3 className="font-semibold text-gray-700 mb-2">Script</h3>
-          <div className="text-gray-600 text-sm leading-relaxed max-h-64 overflow-y-auto">
+        <div className="bg-white border border-navy-100 rounded-lg p-4">
+          <h3 className="font-semibold text-navy-700 mb-2">Script</h3>
+          <div className="text-navy-600 text-sm leading-relaxed max-h-64 overflow-y-auto">
             {script}
           </div>
         </div>
