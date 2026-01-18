@@ -6,28 +6,37 @@ export default {
   ],
   safelist: [
     // VARK color safelist for dynamic classes
-    'bg-visual', 'bg-visual-50', 'bg-visual-100', 'bg-visual-700', 'text-visual', 'text-visual-700', 'border-visual', 'ring-visual',
-    'bg-audio', 'bg-audio-50', 'bg-audio-100', 'bg-audio-700', 'text-audio', 'text-audio-700', 'border-audio', 'ring-audio',
-    'bg-readwrite', 'bg-readwrite-50', 'bg-readwrite-100', 'bg-readwrite-700', 'text-readwrite', 'text-readwrite-700', 'border-readwrite', 'ring-readwrite',
-    'bg-kinesthetic', 'bg-kinesthetic-50', 'bg-kinesthetic-100', 'bg-kinesthetic-700', 'text-kinesthetic', 'text-kinesthetic-700', 'border-kinesthetic', 'ring-kinesthetic',
+    'bg-visual', 'bg-visual-50', 'bg-visual-100', 'bg-visual-700', 'bg-visual-900', 'text-visual', 'text-visual-400', 'text-visual-700', 'border-visual', 'ring-visual', 'shadow-visual-glow',
+    'bg-audio', 'bg-audio-50', 'bg-audio-100', 'bg-audio-700', 'bg-audio-900', 'text-audio', 'text-audio-400', 'text-audio-700', 'border-audio', 'ring-audio', 'shadow-audio-glow',
+    'bg-readwrite', 'bg-readwrite-50', 'bg-readwrite-100', 'bg-readwrite-700', 'bg-readwrite-900', 'text-readwrite', 'text-readwrite-400', 'text-readwrite-700', 'border-readwrite', 'ring-readwrite', 'shadow-readwrite-glow',
+    'bg-kinesthetic', 'bg-kinesthetic-50', 'bg-kinesthetic-100', 'bg-kinesthetic-700', 'bg-kinesthetic-900', 'text-kinesthetic', 'text-kinesthetic-400', 'text-kinesthetic-700', 'border-kinesthetic', 'ring-kinesthetic', 'shadow-kinesthetic-glow',
+    'from-visual', 'from-audio', 'from-readwrite', 'from-kinesthetic',
+    'to-visual', 'to-audio', 'to-readwrite', 'to-kinesthetic',
+    // RerunControl dynamic classes
+    'bg-visual/20', 'bg-visual/30', 'border-visual/30', 'border-visual/50', 'hover:bg-visual/30', 'hover:border-visual/50', 'focus:ring-visual', 'focus:border-visual', 'to-visual-600',
+    'bg-audio/20', 'bg-audio/30', 'border-audio/30', 'border-audio/50', 'hover:bg-audio/30', 'hover:border-audio/50', 'focus:ring-audio', 'focus:border-audio', 'to-audio-600',
+    'bg-readwrite/20', 'bg-readwrite/30', 'border-readwrite/30', 'border-readwrite/50', 'hover:bg-readwrite/30', 'hover:border-readwrite/50', 'focus:ring-readwrite', 'focus:border-readwrite', 'to-readwrite-600',
+    'bg-kinesthetic/20', 'bg-kinesthetic/30', 'border-kinesthetic/30', 'border-kinesthetic/50', 'hover:bg-kinesthetic/30', 'hover:border-kinesthetic/50', 'focus:ring-kinesthetic', 'focus:border-kinesthetic', 'to-kinesthetic-600',
   ],
   theme: {
     extend: {
       colors: {
-        // VARK Primary Colors
+        // VARK Primary Colors - Enhanced with neon variants
         visual: {
-          DEFAULT: '#7C3AED',
-          50: '#F5F3FF',
-          100: '#EDE9FE',
-          200: '#DDD6FE',
-          300: '#C4B5FD',
-          400: '#A78BFA',
-          500: '#7C3AED',
-          600: '#6D28D9',
-          700: '#5B21B6',
+          DEFAULT: '#A855F7',
+          50: '#FAF5FF',
+          100: '#F3E8FF',
+          200: '#E9D5FF',
+          300: '#D8B4FE',
+          400: '#C084FC',
+          500: '#A855F7',
+          600: '#9333EA',
+          700: '#7E22CE',
+          800: '#6B21A8',
+          900: '#1a0a2e',
         },
         audio: {
-          DEFAULT: '#06B6D4',
+          DEFAULT: '#22D3EE',
           50: '#ECFEFF',
           100: '#CFFAFE',
           200: '#A5F3FC',
@@ -36,9 +45,11 @@ export default {
           500: '#06B6D4',
           600: '#0891B2',
           700: '#0E7490',
+          800: '#155E75',
+          900: '#0a1a2e',
         },
         readwrite: {
-          DEFAULT: '#F97316',
+          DEFAULT: '#FB923C',
           50: '#FFF7ED',
           100: '#FFEDD5',
           200: '#FED7AA',
@@ -47,9 +58,11 @@ export default {
           500: '#F97316',
           600: '#EA580C',
           700: '#C2410C',
+          800: '#9A3412',
+          900: '#2e1a0a',
         },
         kinesthetic: {
-          DEFAULT: '#10B981',
+          DEFAULT: '#34D399',
           50: '#ECFDF5',
           100: '#D1FAE5',
           200: '#A7F3D0',
@@ -58,6 +71,22 @@ export default {
           500: '#10B981',
           600: '#059669',
           700: '#047857',
+          800: '#065F46',
+          900: '#0a2e1a',
+        },
+        // Dark theme colors
+        dark: {
+          DEFAULT: '#0a0a0f',
+          50: '#18181b',
+          100: '#1f1f23',
+          200: '#27272a',
+          300: '#3f3f46',
+          400: '#52525b',
+          500: '#71717a',
+          600: '#a1a1aa',
+          700: '#d4d4d8',
+          800: '#e4e4e7',
+          900: '#f4f4f5',
         },
         // Supporting Colors
         navy: {
@@ -72,6 +101,7 @@ export default {
           700: '#334155',
           800: '#1E293B',
           900: '#0F172A',
+          950: '#020617',
         },
         gold: {
           DEFAULT: '#FBBF24',
@@ -86,6 +116,38 @@ export default {
       fontFamily: {
         'heading': ['"Plus Jakarta Sans"', 'sans-serif'],
         'body': ['Inter', 'sans-serif'],
+      },
+      boxShadow: {
+        'glow': '0 0 20px rgba(168, 85, 247, 0.3)',
+        'glow-lg': '0 0 40px rgba(168, 85, 247, 0.4)',
+        'visual-glow': '0 0 20px rgba(168, 85, 247, 0.5)',
+        'audio-glow': '0 0 20px rgba(34, 211, 238, 0.5)',
+        'readwrite-glow': '0 0 20px rgba(251, 146, 60, 0.5)',
+        'kinesthetic-glow': '0 0 20px rgba(52, 211, 153, 0.5)',
+        'neon': '0 0 5px theme(colors.visual.400), 0 0 20px theme(colors.visual.400), 0 0 40px theme(colors.visual.600)',
+      },
+      animation: {
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'border-flow': 'border-flow 3s linear infinite',
+        'float': 'float 3s ease-in-out infinite',
+      },
+      keyframes: {
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(168, 85, 247, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(168, 85, 247, 0.6)' },
+        },
+        'border-flow': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },

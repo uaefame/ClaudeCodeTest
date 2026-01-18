@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import RerunControl from './RerunControl'
 
-function InteractiveTab({ data }) {
+function InteractiveTab({ data, rerunState, onRerun, onVersionChange }) {
   const [phase, setPhase] = useState('learn') // 'learn' or 'practice'
   const [currentConcept, setCurrentConcept] = useState(0)
   const [currentExample, setCurrentExample] = useState(0)
@@ -10,16 +11,27 @@ function InteractiveTab({ data }) {
   const [showPracticeResults, setShowPracticeResults] = useState(false)
   const [completedConcepts, setCompletedConcepts] = useState([])
 
-  if (!data || !data.concepts || data.concepts.length === 0) {
+  // Determine which content to display based on active version
+  const getDisplayData = () => {
+    if (!rerunState || rerunState.activeVersion === 0 || !rerunState.versions?.length) {
+      return data
+    }
+    const versionIndex = rerunState.activeVersion - 1
+    return rerunState.versions[versionIndex]?.data || data
+  }
+
+  const displayData = getDisplayData()
+
+  if (!displayData || !displayData.concepts || displayData.concepts.length === 0) {
     return (
-      <div className="text-center py-12 text-navy-400">
+      <div className="text-center py-12 text-gray-400">
         No interactive content available
       </div>
     )
   }
 
-  const concepts = data.concepts
-  const practiceQuestions = data.practiceQuestions || []
+  const concepts = displayData.concepts
+  const practiceQuestions = displayData.practiceQuestions || []
   const concept = concepts[currentConcept]
   const examples = concept?.examples || []
   const example = examples[currentExample]
@@ -77,16 +89,16 @@ function InteractiveTab({ data }) {
     if (interactive.type === 'reveal') {
       const isRevealed = revealedAnswers[key]
       return (
-        <div className="mt-4 p-4 bg-kinesthetic-50 rounded-lg">
-          <p className="font-medium text-kinesthetic-700 mb-3">{interactive.question}</p>
+        <div className="mt-4 p-4 bg-kinesthetic/10 rounded-xl border border-kinesthetic/20">
+          <p className="font-medium text-kinesthetic mb-3">{interactive.question}</p>
           {isRevealed ? (
-            <div className="bg-white p-3 rounded border-l-4 border-kinesthetic">
-              <p className="text-navy-700">{interactive.answer}</p>
+            <div className="bg-dark-200 p-4 rounded-xl border-l-4 border-kinesthetic shadow-kinesthetic-glow">
+              <p className="text-gray-200">{interactive.answer}</p>
             </div>
           ) : (
             <button
               onClick={() => handleReveal(conceptId, exampleIdx)}
-              className="px-4 py-2 bg-kinesthetic text-white rounded-lg hover:bg-kinesthetic-600 transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl hover:shadow-kinesthetic-glow transition-all duration-300 flex items-center gap-2 font-semibold hover:scale-105"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -104,8 +116,8 @@ function InteractiveTab({ data }) {
       const isAnswered = selectedChoice !== undefined
 
       return (
-        <div className="mt-4 p-4 bg-kinesthetic-50 rounded-lg">
-          <p className="font-medium text-kinesthetic-700 mb-3">{interactive.question}</p>
+        <div className="mt-4 p-4 bg-kinesthetic/10 rounded-xl border border-kinesthetic/20">
+          <p className="font-medium text-kinesthetic mb-3">{interactive.question}</p>
           <div className="space-y-2">
             {interactive.options.map((option, idx) => {
               const isSelected = selectedChoice === idx
@@ -117,23 +129,25 @@ function InteractiveTab({ data }) {
                   key={idx}
                   onClick={() => !isAnswered && handleChoice(conceptId, exampleIdx, idx)}
                   disabled={isAnswered}
-                  className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                  className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-300 ${
                     showResult && isCorrect
-                      ? 'border-kinesthetic bg-kinesthetic-50 text-kinesthetic-700'
+                      ? 'border-kinesthetic bg-kinesthetic/20 text-kinesthetic shadow-kinesthetic-glow'
                       : showResult && isSelected && !isCorrect
-                      ? 'border-red-500 bg-red-50 text-red-800'
+                      ? 'border-red-500 bg-red-500/20 text-red-400'
                       : isSelected
-                      ? 'border-kinesthetic bg-kinesthetic-100'
-                      : 'border-navy-200 hover:border-kinesthetic-300 hover:bg-white'
-                  } ${isAnswered ? 'cursor-default' : 'cursor-pointer'}`}
+                      ? 'border-kinesthetic bg-kinesthetic/10 text-white'
+                      : 'border-gray-600 hover:border-kinesthetic/50 hover:bg-kinesthetic/5 text-gray-300'
+                  } ${isAnswered ? 'cursor-default' : 'cursor-pointer hover:scale-[1.01]'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-medium ${
+                    <span className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold ${
                       showResult && isCorrect
-                        ? 'bg-kinesthetic text-white'
+                        ? 'bg-kinesthetic text-white shadow-kinesthetic-glow'
                         : showResult && isSelected && !isCorrect
                         ? 'bg-red-500 text-white'
-                        : 'bg-navy-200'
+                        : isSelected
+                        ? 'bg-kinesthetic/50 text-white'
+                        : 'bg-dark-300 text-gray-400'
                     }`}>
                       {String.fromCharCode(65 + idx)}
                     </span>
@@ -144,9 +158,9 @@ function InteractiveTab({ data }) {
             })}
           </div>
           {isAnswered && (
-            <div className={`mt-3 p-3 rounded-lg ${selectedChoice === interactive.correctIndex ? 'bg-kinesthetic-100' : 'bg-gold-100'}`}>
-              <p className="text-sm">
-                <strong>{selectedChoice === interactive.correctIndex ? 'Correct!' : 'Not quite.'}</strong> {interactive.explanation}
+            <div className={`mt-3 p-4 rounded-xl ${selectedChoice === interactive.correctIndex ? 'bg-kinesthetic/20 border border-kinesthetic/30' : 'bg-gold/20 border border-gold/30'}`}>
+              <p className="text-sm text-gray-200">
+                <strong className={selectedChoice === interactive.correctIndex ? 'text-kinesthetic' : 'text-gold'}>{selectedChoice === interactive.correctIndex ? 'Correct!' : 'Not quite.'}</strong> {interactive.explanation}
               </p>
             </div>
           )}
@@ -163,28 +177,36 @@ function InteractiveTab({ data }) {
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-kinesthetic-50 rounded-full mb-2">
-            <span className="w-2 h-2 bg-kinesthetic rounded-full"></span>
-            <span className="text-kinesthetic-700 text-sm font-medium">Kinesthetic Learning</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-kinesthetic/20 rounded-full mb-2 border border-kinesthetic/30">
+            <span className="w-2 h-2 bg-kinesthetic rounded-full shadow-kinesthetic-glow"></span>
+            <span className="text-kinesthetic text-sm font-medium">Kinesthetic Learning</span>
           </div>
-          <h2 className="text-xl font-bold text-navy-800 font-heading">{data.title || 'Interactive Learning'}</h2>
-          <p className="text-navy-500 mt-1">{data.introduction}</p>
+          <h2 className="text-xl font-bold text-white font-heading">{displayData.title || 'Interactive Learning'}</h2>
+          <p className="text-gray-400 mt-1">{displayData.introduction}</p>
         </div>
 
+        {/* Rerun Control */}
+        <RerunControl
+          color="kinesthetic"
+          rerunState={rerunState}
+          onRerun={onRerun}
+          onVersionChange={onVersionChange}
+        />
+
         {/* Phase Toggle */}
-        <div className="flex justify-center gap-2">
+        <div className="flex justify-center gap-3">
           <button
             onClick={() => setPhase('learn')}
-            className="px-4 py-2 bg-kinesthetic text-white rounded-lg font-medium"
+            className="px-6 py-3 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl font-semibold shadow-kinesthetic-glow"
           >
             Learn
           </button>
           <button
             onClick={() => setPhase('practice')}
-            className={`px-4 py-2 rounded-lg font-medium ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
               completedConcepts.length > 0
-                ? 'bg-navy-100 text-navy-700 hover:bg-navy-200'
-                : 'bg-navy-50 text-navy-300 cursor-not-allowed'
+                ? 'bg-dark-200 text-gray-300 hover:bg-dark-300 border border-kinesthetic/30 hover:border-kinesthetic/50'
+                : 'bg-dark-300 text-gray-500 cursor-not-allowed border border-white/5'
             }`}
             disabled={completedConcepts.length === 0}
           >
@@ -201,45 +223,45 @@ function InteractiveTab({ data }) {
                 setCurrentConcept(idx)
                 setCurrentExample(0)
               }}
-              className={`flex-1 h-2 rounded-full transition-colors ${
+              className={`flex-1 h-2 rounded-full transition-all duration-300 ${
                 idx === currentConcept
-                  ? 'bg-kinesthetic'
+                  ? 'bg-kinesthetic shadow-kinesthetic-glow'
                   : completedConcepts.includes(idx)
-                  ? 'bg-kinesthetic-300'
-                  : 'bg-navy-200'
+                  ? 'bg-kinesthetic/50'
+                  : 'bg-dark-300'
               }`}
             />
           ))}
         </div>
 
         {/* Current Concept */}
-        <div className="bg-white border border-navy-100 rounded-xl p-6 shadow-sm">
+        <div className="bg-dark-100 border border-white/10 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-kinesthetic">
               Concept {currentConcept + 1} of {concepts.length}
             </span>
-            <span className="text-xs px-2 py-1 bg-kinesthetic-100 text-kinesthetic-700 rounded-full">
+            <span className="text-xs px-3 py-1.5 bg-kinesthetic/20 text-kinesthetic rounded-full border border-kinesthetic/30">
               Example {currentExample + 1} of {examples.length}
             </span>
           </div>
 
-          <h3 className="text-lg font-bold text-navy-800 font-heading mb-2">{concept.title}</h3>
-          <p className="text-navy-600 mb-4">{concept.explanation}</p>
+          <h3 className="text-lg font-bold text-white font-heading mb-2">{concept.title}</h3>
+          <p className="text-gray-300 mb-4">{concept.explanation}</p>
 
-          <div className="bg-gold-50 border-l-4 border-gold p-3 mb-6">
-            <p className="text-sm text-gold-500">
+          <div className="bg-gold/10 border-l-4 border-gold p-4 mb-6 rounded-r-xl">
+            <p className="text-sm text-gold">
               <strong>Key Point:</strong> {concept.keyPoint}
             </p>
           </div>
 
           {/* Current Example */}
           {example && (
-            <div className="bg-navy-50 rounded-lg p-4">
-              <h4 className="font-semibold text-navy-800 mb-2">{example.title}</h4>
-              <div className="bg-white p-3 rounded border border-navy-100 mb-3">
-                <p className="text-navy-700 italic">{example.scenario}</p>
+            <div className="bg-dark-200 rounded-xl p-4 border border-white/5">
+              <h4 className="font-semibold text-white mb-2">{example.title}</h4>
+              <div className="bg-dark-100 p-4 rounded-xl border border-white/10 mb-3">
+                <p className="text-gray-300 italic">{example.scenario}</p>
               </div>
-              <p className="text-navy-600 mb-2">{example.walkthrough}</p>
+              <p className="text-gray-400 mb-2">{example.walkthrough}</p>
 
               {example.interactive && renderInteractiveElement(example.interactive, concept.id, currentExample)}
             </div>
@@ -247,10 +269,10 @@ function InteractiveTab({ data }) {
 
           {/* Fun Fact */}
           {concept.funFact && currentExample === examples.length - 1 && (
-            <div className="mt-4 bg-gradient-to-r from-kinesthetic-50 to-audio-50 p-4 rounded-lg">
+            <div className="mt-4 bg-gradient-to-r from-kinesthetic/10 to-audio/10 p-4 rounded-xl border border-kinesthetic/20">
               <p className="text-sm">
                 <span className="text-kinesthetic font-medium">Fun Fact:</span>{' '}
-                <span className="text-navy-700">{concept.funFact}</span>
+                <span className="text-gray-300">{concept.funFact}</span>
               </p>
             </div>
           )}
@@ -267,7 +289,7 @@ function InteractiveTab({ data }) {
                 }
               }}
               disabled={currentConcept === 0 && currentExample === 0}
-              className="px-4 py-2 text-navy-500 hover:text-navy-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 text-gray-400 hover:text-white bg-dark-200 hover:bg-dark-300 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 hover:border-white/20"
             >
               Previous
             </button>
@@ -280,14 +302,14 @@ function InteractiveTab({ data }) {
                   }
                   setPhase('practice')
                 }}
-                className="px-6 py-2 bg-kinesthetic text-white rounded-lg hover:bg-kinesthetic-600 transition-colors"
+                className="px-6 py-2.5 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl font-semibold hover:shadow-kinesthetic-glow transition-all duration-300 hover:scale-105"
               >
                 Start Practice
               </button>
             ) : (
               <button
                 onClick={handleNextExample}
-                className="px-4 py-2 bg-kinesthetic text-white rounded-lg hover:bg-kinesthetic-600 transition-colors"
+                className="px-6 py-2.5 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl font-semibold hover:shadow-kinesthetic-glow transition-all duration-300 hover:scale-105"
               >
                 Next
               </button>
@@ -307,10 +329,10 @@ function InteractiveTab({ data }) {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-navy-800 font-heading">Practice Complete!</h2>
+          <h2 className="text-2xl font-bold text-white font-heading">Practice Complete!</h2>
         </div>
 
-        <div className="bg-gradient-to-r from-kinesthetic to-kinesthetic-600 rounded-xl p-8 text-white text-center">
+        <div className="bg-gradient-to-r from-kinesthetic to-kinesthetic-600 rounded-2xl p-8 text-white text-center shadow-kinesthetic-glow">
           <div className="text-6xl font-bold mb-2">{percentage}%</div>
           <div className="text-xl opacity-90">
             {score} out of {total} correct
@@ -325,20 +347,20 @@ function InteractiveTab({ data }) {
             return (
               <div
                 key={idx}
-                className={`p-4 rounded-lg border-l-4 ${
-                  isCorrect ? 'border-kinesthetic bg-kinesthetic-50' : 'border-red-500 bg-red-50'
+                className={`p-4 rounded-xl border-l-4 ${
+                  isCorrect ? 'border-kinesthetic bg-kinesthetic/10' : 'border-red-500 bg-red-500/10'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-white text-sm ${
-                    isCorrect ? 'bg-kinesthetic' : 'bg-red-500'
+                  <span className={`w-8 h-8 flex items-center justify-center rounded-lg text-white text-sm font-bold ${
+                    isCorrect ? 'bg-kinesthetic shadow-kinesthetic-glow' : 'bg-red-500'
                   }`}>
                     {isCorrect ? '✓' : '✗'}
                   </span>
                   <div>
-                    <p className="font-medium text-navy-800">{q.question}</p>
-                    {q.scenario && <p className="text-sm text-navy-600 mt-1 italic">{q.scenario}</p>}
-                    <p className="text-sm text-navy-600 mt-2">{q.explanation}</p>
+                    <p className="font-medium text-white">{q.question}</p>
+                    {q.scenario && <p className="text-sm text-gray-400 mt-1 italic">{q.scenario}</p>}
+                    <p className="text-sm text-gray-300 mt-2">{q.explanation}</p>
                   </div>
                 </div>
               </div>
@@ -353,7 +375,7 @@ function InteractiveTab({ data }) {
               setCurrentConcept(0)
               setCurrentExample(0)
             }}
-            className="flex-1 py-3 bg-navy-100 text-navy-700 rounded-lg hover:bg-navy-200 transition-colors font-medium"
+            className="flex-1 py-3 bg-dark-200 text-gray-300 rounded-xl hover:bg-dark-300 transition-all duration-300 font-semibold border border-white/10 hover:border-white/20"
           >
             Review Concepts
           </button>
@@ -362,7 +384,7 @@ function InteractiveTab({ data }) {
               setPracticeAnswers({})
               setShowPracticeResults(false)
             }}
-            className="flex-1 py-3 bg-kinesthetic text-white rounded-lg hover:bg-kinesthetic-600 transition-colors font-medium"
+            className="flex-1 py-3 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl hover:shadow-kinesthetic-glow transition-all duration-300 font-semibold hover:scale-[1.02]"
           >
             Try Again
           </button>
@@ -376,25 +398,33 @@ function InteractiveTab({ data }) {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-kinesthetic-50 rounded-full mb-2">
-          <span className="w-2 h-2 bg-kinesthetic rounded-full"></span>
-          <span className="text-kinesthetic-700 text-sm font-medium">Kinesthetic Learning</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-kinesthetic/20 rounded-full mb-2 border border-kinesthetic/30">
+          <span className="w-2 h-2 bg-kinesthetic rounded-full shadow-kinesthetic-glow"></span>
+          <span className="text-kinesthetic text-sm font-medium">Kinesthetic Learning</span>
         </div>
-        <h2 className="text-xl font-bold text-navy-800 font-heading">Practice Time!</h2>
-        <p className="text-navy-500 mt-1">Apply what you've learned with new scenarios</p>
+        <h2 className="text-xl font-bold text-white font-heading">Practice Time!</h2>
+        <p className="text-gray-400 mt-1">Apply what you've learned with new scenarios</p>
       </div>
 
+      {/* Rerun Control */}
+      <RerunControl
+        color="kinesthetic"
+        rerunState={rerunState}
+        onRerun={onRerun}
+        onVersionChange={onVersionChange}
+      />
+
       {/* Phase Toggle */}
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-3">
         <button
           onClick={() => setPhase('learn')}
-          className="px-4 py-2 bg-navy-100 text-navy-700 rounded-lg font-medium hover:bg-navy-200"
+          className="px-6 py-3 bg-dark-200 text-gray-300 rounded-xl font-semibold hover:bg-dark-300 transition-all duration-300 border border-white/10 hover:border-white/20"
         >
           Learn
         </button>
         <button
           onClick={() => setPhase('practice')}
-          className="px-4 py-2 bg-kinesthetic text-white rounded-lg font-medium"
+          className="px-6 py-3 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl font-semibold shadow-kinesthetic-glow"
         >
           Practice
         </button>
@@ -403,21 +433,21 @@ function InteractiveTab({ data }) {
       {/* Practice Questions */}
       <div className="space-y-4">
         {practiceQuestions.map((question, idx) => (
-          <div key={idx} className="bg-white border border-navy-100 rounded-xl p-6 shadow-sm">
+          <div key={idx} className="bg-dark-100 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-medium text-kinesthetic">Question {idx + 1}</span>
               {question.type === 'apply' && (
-                <span className="text-xs px-2 py-1 bg-readwrite-100 text-readwrite-700 rounded-full">Application</span>
+                <span className="text-xs px-3 py-1 bg-readwrite/20 text-readwrite rounded-full border border-readwrite/30">Application</span>
               )}
             </div>
 
             {question.scenario && (
-              <div className="bg-navy-50 p-3 rounded-lg mb-3 italic text-navy-700">
+              <div className="bg-dark-200 p-4 rounded-xl mb-3 italic text-gray-300 border border-white/5">
                 {question.scenario}
               </div>
             )}
 
-            <p className="font-medium text-navy-800 mb-4">{question.question}</p>
+            <p className="font-medium text-white mb-4">{question.question}</p>
 
             {question.type === 'multiple_choice' && (
               <div className="space-y-2">
@@ -428,15 +458,15 @@ function InteractiveTab({ data }) {
                     <button
                       key={optIdx}
                       onClick={() => handlePracticeAnswer(question.id, optIdx)}
-                      className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                      className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-300 hover:scale-[1.01] ${
                         isSelected
-                          ? 'border-kinesthetic bg-kinesthetic-50'
-                          : 'border-navy-200 hover:border-kinesthetic-300 hover:bg-navy-50'
+                          ? 'border-kinesthetic bg-kinesthetic/20 text-white shadow-kinesthetic-glow'
+                          : 'border-gray-600 hover:border-kinesthetic/50 hover:bg-kinesthetic/5 text-gray-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-medium ${
-                          isSelected ? 'bg-kinesthetic text-white' : 'bg-navy-200'
+                        <span className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold ${
+                          isSelected ? 'bg-kinesthetic text-white shadow-kinesthetic-glow' : 'bg-dark-300 text-gray-400'
                         }`}>
                           {String.fromCharCode(65 + optIdx)}
                         </span>
@@ -450,27 +480,27 @@ function InteractiveTab({ data }) {
 
             {question.type === 'apply' && (
               <div className="space-y-3">
-                <div className="bg-audio-50 p-4 rounded-lg">
-                  <p className="text-sm text-audio-700">
+                <div className="bg-audio/10 p-4 rounded-xl border border-audio/20">
+                  <p className="text-sm text-audio">
                     <strong>Think about it:</strong> What approach would you take?
                   </p>
                 </div>
                 <button
                   onClick={() => handlePracticeAnswer(question.id, 'revealed')}
-                  className={`w-full p-3 rounded-lg border-2 transition-all ${
+                  className={`w-full p-4 rounded-xl border-2 transition-all duration-300 ${
                     practiceAnswers[question.id]
-                      ? 'border-kinesthetic bg-kinesthetic-50'
-                      : 'border-navy-200 hover:border-kinesthetic-300'
+                      ? 'border-kinesthetic bg-kinesthetic/10'
+                      : 'border-gray-600 hover:border-kinesthetic/50 hover:bg-kinesthetic/5'
                   }`}
                 >
                   {practiceAnswers[question.id] ? (
                     <div className="text-left">
-                      <p className="font-medium text-kinesthetic-700 mb-2">Correct Approach:</p>
-                      <p className="text-navy-700">{question.correctApproach}</p>
+                      <p className="font-medium text-kinesthetic mb-2">Correct Approach:</p>
+                      <p className="text-gray-300">{question.correctApproach}</p>
                       {question.commonMistakes && (
-                        <div className="mt-3 pt-3 border-t border-kinesthetic-200">
-                          <p className="text-sm text-gold-500 font-medium">Common Mistakes:</p>
-                          <ul className="list-disc list-inside text-sm text-navy-600 mt-1">
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                          <p className="text-sm text-gold font-medium">Common Mistakes:</p>
+                          <ul className="list-disc list-inside text-sm text-gray-400 mt-1">
                             {question.commonMistakes.map((mistake, i) => (
                               <li key={i}>{mistake}</li>
                             ))}
@@ -479,15 +509,15 @@ function InteractiveTab({ data }) {
                       )}
                     </div>
                   ) : (
-                    <span className="text-navy-500">Click to reveal the correct approach</span>
+                    <span className="text-gray-400">Click to reveal the correct approach</span>
                   )}
                 </button>
               </div>
             )}
 
             {question.hint && !practiceAnswers[question.id] && (
-              <p className="text-sm text-navy-400 mt-3">
-                <strong>Hint:</strong> {question.hint}
+              <p className="text-sm text-gray-500 mt-3">
+                <strong className="text-gray-400">Hint:</strong> {question.hint}
               </p>
             )}
           </div>
@@ -498,7 +528,7 @@ function InteractiveTab({ data }) {
       <button
         onClick={() => setShowPracticeResults(true)}
         disabled={Object.keys(practiceAnswers).length < practiceQuestions.length}
-        className="w-full py-3 bg-kinesthetic text-white rounded-lg hover:bg-kinesthetic-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+        className="w-full py-4 bg-gradient-to-r from-kinesthetic to-kinesthetic-600 text-white rounded-xl hover:shadow-kinesthetic-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-bold text-lg hover:scale-[1.02]"
       >
         Check My Answers
       </button>

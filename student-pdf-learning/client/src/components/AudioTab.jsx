@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
+import RerunControl from './RerunControl'
 
-function AudioTab({ audioData }) {
+function AudioTab({ audioData, rerunState, onRerun, onVersionChange }) {
+  // Determine which content to display based on active version
+  const getDisplayData = () => {
+    if (!rerunState || rerunState.activeVersion === 0 || !rerunState.versions?.length) {
+      return audioData
+    }
+    const versionIndex = rerunState.activeVersion - 1
+    return rerunState.versions[versionIndex]?.data || audioData
+  }
+
+  const displayData = getDisplayData()
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -14,8 +26,8 @@ function AudioTab({ audioData }) {
   const utteranceRef = useRef(null)
 
   // Determine if we have Gemini TTS audio or need to fall back to Web Speech
-  const hasGeminiAudio = audioData?.audio?.data
-  const script = audioData?.script || (typeof audioData === 'string' ? audioData : '')
+  const hasGeminiAudio = displayData?.audio?.data
+  const script = displayData?.script || (typeof displayData === 'string' ? displayData : '')
 
   useEffect(() => {
     // If no Gemini audio, set up Web Speech API fallback
@@ -44,7 +56,7 @@ function AudioTab({ audioData }) {
   // Set up audio element for Gemini TTS
   useEffect(() => {
     if (hasGeminiAudio && audioRef.current) {
-      const audioSrc = `data:${audioData.audio.mimeType};base64,${audioData.audio.data}`
+      const audioSrc = `data:${displayData.audio.mimeType};base64,${displayData.audio.data}`
       audioRef.current.src = audioSrc
 
       audioRef.current.onloadedmetadata = () => {
@@ -63,7 +75,7 @@ function AudioTab({ audioData }) {
         setProgress(100)
       }
     }
-  }, [hasGeminiAudio, audioData])
+  }, [hasGeminiAudio, displayData])
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -168,7 +180,7 @@ function AudioTab({ audioData }) {
 
   if (!script && !hasGeminiAudio) {
     return (
-      <div className="text-center py-12 text-navy-400">
+      <div className="text-center py-12 text-gray-400">
         No audio available
       </div>
     )
@@ -177,46 +189,57 @@ function AudioTab({ audioData }) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-audio-50 rounded-full mb-2">
-          <span className="w-2 h-2 bg-audio rounded-full"></span>
-          <span className="text-audio-700 text-sm font-medium">Audio Learning</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-audio/20 rounded-full mb-2 border border-audio/30">
+          <span className="w-2 h-2 bg-audio rounded-full shadow-audio-glow"></span>
+          <span className="text-audio text-sm font-medium">Audio Learning</span>
         </div>
-        <h2 className="text-xl font-bold text-navy-800 font-heading">Audio Explanation</h2>
-        <p className="text-navy-500 mt-1">
+        <h2 className="text-xl font-bold text-white font-heading">Audio Explanation</h2>
+        <p className="text-gray-400 mt-1">
           {hasGeminiAudio
             ? 'AI-generated natural voice narration'
             : 'Listen to a narrated explanation of the concepts'}
         </p>
         {hasGeminiAudio && (
-          <span className="inline-block mt-2 px-3 py-1 bg-audio-100 text-audio-700 text-xs rounded-full">
+          <span className="inline-block mt-2 px-3 py-1.5 bg-audio/20 text-audio text-xs rounded-full border border-audio/30">
             Powered by Gemini TTS
           </span>
         )}
       </div>
 
+      {/* Rerun Control */}
+      <RerunControl
+        color="audio"
+        rerunState={rerunState}
+        onRerun={onRerun}
+        onVersionChange={onVersionChange}
+      />
+
       {/* Hidden audio element for Gemini TTS */}
       {hasGeminiAudio && <audio ref={audioRef} />}
 
       {/* Audio Player Controls */}
-      <div className="bg-gradient-to-r from-audio-500 to-audio-600 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-audio to-audio-600 rounded-2xl p-6 text-white shadow-audio-glow">
         {/* Progress Bar */}
         <div className="mb-6">
           <div
-            className="w-full bg-white/30 rounded-full h-2 cursor-pointer"
+            className="w-full bg-white/20 rounded-full h-3 cursor-pointer backdrop-blur-sm"
             onClick={hasGeminiAudio ? handleSeek : undefined}
           >
             <div
-              className="bg-white h-2 rounded-full transition-all duration-300"
+              className="bg-white h-3 rounded-full transition-all duration-300 shadow-lg"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex justify-between text-sm mt-1 opacity-80">
-            <span>
+          <div className="flex justify-between text-sm mt-2 opacity-90">
+            <span className="font-medium">
               {hasGeminiAudio
                 ? `${formatTime(currentTime)} / ${formatTime(duration)}`
                 : `${Math.round(progress)}%`}
             </span>
-            <span>{isPlaying ? 'Playing...' : isPaused ? 'Paused' : 'Ready'}</span>
+            <span className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-white animate-pulse' : 'bg-white/50'}`}></span>
+              {isPlaying ? 'Playing...' : isPaused ? 'Paused' : 'Ready'}
+            </span>
           </div>
         </div>
 
@@ -225,24 +248,24 @@ function AudioTab({ audioData }) {
           <button
             onClick={handleStop}
             disabled={!isPlaying && !isPaused}
-            className="p-3 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-4 rounded-xl bg-white/20 hover:bg-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-white/20"
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <rect x="6" y="6" width="12" height="12" />
+              <rect x="6" y="6" width="12" height="12" rx="2" />
             </svg>
           </button>
 
           <button
             onClick={isPlaying ? handlePause : handlePlay}
-            className="p-4 rounded-full bg-white text-audio hover:bg-gray-100 transition-colors shadow-lg"
+            className="p-5 rounded-2xl bg-white text-audio hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110"
           >
             {isPlaying ? (
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
+              <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
               </svg>
             ) : (
-              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -254,7 +277,7 @@ function AudioTab({ audioData }) {
               setTimeout(handlePlay, 100)
             }}
             disabled={!isPlaying && !isPaused}
-            className="p-3 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-4 rounded-xl bg-white/20 hover:bg-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-white/20"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -265,19 +288,19 @@ function AudioTab({ audioData }) {
 
       {/* Voice Settings - Only show for Web Speech API fallback */}
       {useWebSpeech && !hasGeminiAudio && (
-        <div className="bg-navy-50 rounded-lg p-4 space-y-4">
-          <h3 className="font-semibold text-navy-700">Voice Settings (Browser TTS)</h3>
+        <div className="bg-dark-100 rounded-xl p-4 space-y-4 border border-white/10">
+          <h3 className="font-semibold text-white">Voice Settings (Browser TTS)</h3>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-navy-600 mb-1">Voice</label>
+              <label className="block text-sm text-gray-400 mb-2">Voice</label>
               <select
                 value={selectedVoice?.name || ''}
                 onChange={(e) => {
                   const voice = voices.find(v => v.name === e.target.value)
                   setSelectedVoice(voice)
                 }}
-                className="w-full p-2 border border-navy-200 rounded-lg focus:ring-2 focus:ring-audio focus:border-audio"
+                className="w-full p-3 bg-dark-200 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-audio focus:border-audio transition-all"
               >
                 {voices.map((voice) => (
                   <option key={voice.name} value={voice.name}>
@@ -288,8 +311,8 @@ function AudioTab({ audioData }) {
             </div>
 
             <div>
-              <label className="block text-sm text-navy-600 mb-1">
-                Speed: {rate}x
+              <label className="block text-sm text-gray-400 mb-2">
+                Speed: <span className="text-audio font-medium">{rate}x</span>
               </label>
               <input
                 type="range"
@@ -298,7 +321,7 @@ function AudioTab({ audioData }) {
                 step="0.1"
                 value={rate}
                 onChange={(e) => setRate(parseFloat(e.target.value))}
-                className="w-full"
+                className="w-full accent-audio"
               />
             </div>
           </div>
@@ -311,11 +334,11 @@ function AudioTab({ audioData }) {
           <button
             onClick={() => {
               const link = document.createElement('a')
-              link.href = `data:${audioData.audio.mimeType};base64,${audioData.audio.data}`
+              link.href = `data:${displayData.audio.mimeType};base64,${displayData.audio.data}`
               link.download = 'audio-explanation.wav'
               link.click()
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-audio text-white rounded-lg hover:bg-audio-600 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-audio to-audio-600 text-white rounded-xl hover:shadow-audio-glow transition-all duration-300 font-semibold hover:scale-105"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -327,9 +350,9 @@ function AudioTab({ audioData }) {
 
       {/* Script Display */}
       {script && (
-        <div className="bg-white border border-navy-100 rounded-lg p-4">
-          <h3 className="font-semibold text-navy-700 mb-2">Script</h3>
-          <div className="text-navy-600 text-sm leading-relaxed max-h-64 overflow-y-auto">
+        <div className="bg-dark-100 border border-white/10 rounded-xl p-4">
+          <h3 className="font-semibold text-white mb-3">Script</h3>
+          <div className="text-gray-300 text-sm leading-relaxed max-h-64 overflow-y-auto">
             {script}
           </div>
         </div>

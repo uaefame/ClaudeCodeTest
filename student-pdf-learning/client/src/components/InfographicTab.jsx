@@ -1,38 +1,60 @@
-function InfographicTab({ data }) {
-  if (!data) {
+import RerunControl from './RerunControl'
+
+function InfographicTab({ data, rerunState, onRerun, onVersionChange }) {
+  // Determine which content to display based on active version
+  const getDisplayData = () => {
+    if (!rerunState || rerunState.activeVersion === 0 || !rerunState.versions?.length) {
+      return data
+    }
+    const versionIndex = rerunState.activeVersion - 1
+    return rerunState.versions[versionIndex]?.data || data
+  }
+
+  const displayData = getDisplayData()
+
+  if (!displayData) {
     return (
-      <div className="text-center py-12 text-navy-400">
+      <div className="text-center py-12 text-gray-400">
         No infographic data available
       </div>
     )
   }
 
   // If we have an actual image
-  if (data.type === 'image' && data.data) {
+  if (displayData.type === 'image' && displayData.data) {
     return (
       <div className="space-y-4">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-visual-50 rounded-full mb-2">
-            <span className="w-2 h-2 bg-visual rounded-full"></span>
-            <span className="text-visual-700 text-sm font-medium">Visual Learning</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-visual/20 rounded-full mb-2 border border-visual/30">
+            <span className="w-2 h-2 bg-visual rounded-full shadow-visual-glow"></span>
+            <span className="text-visual text-sm font-medium">Visual Learning</span>
           </div>
-          <h2 className="text-xl font-bold text-navy-800 font-heading">Visual Summary</h2>
+          <h2 className="text-xl font-bold text-white font-heading">Visual Summary</h2>
         </div>
+
+        {/* Rerun Control */}
+        <RerunControl
+          color="visual"
+          rerunState={rerunState}
+          onRerun={onRerun}
+          onVersionChange={onVersionChange}
+        />
+
         <div className="flex justify-center">
           <img
-            src={`data:${data.mimeType};base64,${data.data}`}
+            src={`data:${displayData.mimeType};base64,${displayData.data}`}
             alt="Generated infographic"
-            className="max-w-full rounded-lg shadow-lg border border-visual-200"
+            className="max-w-full rounded-2xl shadow-visual-glow border border-visual/30"
           />
         </div>
         <button
           onClick={() => {
             const link = document.createElement('a')
-            link.href = `data:${data.mimeType};base64,${data.data}`
+            link.href = `data:${displayData.mimeType};base64,${displayData.data}`
             link.download = 'infographic.png'
             link.click()
           }}
-          className="flex items-center gap-2 mx-auto px-4 py-2 bg-visual text-white rounded-lg hover:bg-visual-600 transition-colors"
+          className="flex items-center gap-2 mx-auto px-6 py-3 bg-gradient-to-r from-visual to-visual-600 text-white rounded-xl hover:shadow-visual-glow transition-all duration-300 font-semibold hover:scale-105"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -44,19 +66,27 @@ function InfographicTab({ data }) {
   }
 
   // Text-based fallback infographic
-  const keyPoints = data.keyPoints || data.message || 'No key points available'
+  const keyPoints = displayData.keyPoints || displayData.message || 'No key points available'
   const points = keyPoints.split('\n').filter(p => p.trim())
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-visual-50 rounded-full mb-2">
-          <span className="w-2 h-2 bg-visual rounded-full"></span>
-          <span className="text-visual-700 text-sm font-medium">Visual Learning</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-visual/20 rounded-full mb-2 border border-visual/30">
+          <span className="w-2 h-2 bg-visual rounded-full shadow-visual-glow"></span>
+          <span className="text-visual text-sm font-medium">Visual Learning</span>
         </div>
-        <h2 className="text-xl font-bold text-navy-800 font-heading">Key Concepts Overview</h2>
-        <p className="text-navy-500 mt-1">Visual summary of the main topics</p>
+        <h2 className="text-xl font-bold text-white font-heading">Key Concepts Overview</h2>
+        <p className="text-gray-400 mt-1">Visual summary of the main topics</p>
       </div>
+
+      {/* Rerun Control */}
+      <RerunControl
+        color="visual"
+        rerunState={rerunState}
+        onRerun={onRerun}
+        onVersionChange={onVersionChange}
+      />
 
       {/* Visual Key Points Display */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -66,23 +96,30 @@ function InfographicTab({ data }) {
           if (!cleanPoint) return null
 
           const colors = [
-            'bg-visual-50 border-visual-400 text-visual-700',
-            'bg-audio-50 border-audio-400 text-audio-700',
-            'bg-kinesthetic-50 border-kinesthetic-400 text-kinesthetic-700',
-            'bg-readwrite-50 border-readwrite-400 text-readwrite-700',
+            'bg-visual/10 border-visual text-visual',
+            'bg-audio/10 border-audio text-audio',
+            'bg-kinesthetic/10 border-kinesthetic text-kinesthetic',
+            'bg-readwrite/10 border-readwrite text-readwrite',
+          ]
+          const glowColors = [
+            'hover:shadow-visual-glow',
+            'hover:shadow-audio-glow',
+            'hover:shadow-kinesthetic-glow',
+            'hover:shadow-readwrite-glow',
           ]
           const colorClass = colors[index % colors.length]
+          const glowClass = glowColors[index % glowColors.length]
 
           return (
             <div
               key={index}
-              className={`p-4 rounded-lg border-l-4 ${colorClass} transform hover:scale-[1.02] transition-transform`}
+              className={`p-4 rounded-xl border-l-4 ${colorClass} ${glowClass} transform hover:scale-[1.02] transition-all duration-300`}
             >
               <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded-full font-bold text-sm shadow-sm">
+                <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-dark-200 rounded-lg font-bold text-sm text-white">
                   {index + 1}
                 </span>
-                <p className="font-medium">{cleanPoint}</p>
+                <p className="font-medium text-gray-200">{cleanPoint}</p>
               </div>
             </div>
           )
@@ -90,14 +127,14 @@ function InfographicTab({ data }) {
       </div>
 
       {/* Info message if image generation wasn't available */}
-      {data.message && (
-        <div className="bg-gold-50 border border-gold-200 rounded-lg p-4 text-sm text-gold-500">
+      {displayData.message && (
+        <div className="bg-gold/10 border border-gold/30 rounded-xl p-4 text-sm text-gold">
           <div className="flex items-start gap-2">
             <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p>
-              <strong>Note:</strong> {data.message}
+              <strong>Note:</strong> {displayData.message}
             </p>
           </div>
         </div>

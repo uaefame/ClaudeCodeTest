@@ -11,19 +11,47 @@ const tabs = [
   { id: 'report', label: 'Read/Write', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'readwrite' }
 ]
 
-function TabContainer({ results }) {
+function TabContainer({ results, rerunStates, onRerun, onVersionChange }) {
   const [activeTab, setActiveTab] = useState('infographic')
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'infographic':
-        return <InfographicTab data={results.infographic} />
+        return (
+          <InfographicTab
+            data={results.infographic}
+            rerunState={rerunStates?.infographic}
+            onRerun={(instructions) => onRerun?.('infographic', instructions)}
+            onVersionChange={(v) => onVersionChange?.('infographic', v)}
+          />
+        )
       case 'audio':
-        return <AudioTab audioData={results.audioScript} />
+        return (
+          <AudioTab
+            audioData={results.audioScript}
+            rerunState={rerunStates?.audioScript}
+            onRerun={(instructions) => onRerun?.('audioScript', instructions)}
+            onVersionChange={(v) => onVersionChange?.('audioScript', v)}
+          />
+        )
       case 'interactive':
-        return <InteractiveTab data={results.interactiveLearning} />
+        return (
+          <InteractiveTab
+            data={results.interactiveLearning}
+            rerunState={rerunStates?.interactiveLearning}
+            onRerun={(instructions) => onRerun?.('interactiveLearning', instructions)}
+            onVersionChange={(v) => onVersionChange?.('interactiveLearning', v)}
+          />
+        )
       case 'report':
-        return <ReportTab content={results.report} />
+        return (
+          <ReportTab
+            content={results.report}
+            rerunState={rerunStates?.report}
+            onRerun={(instructions) => onRerun?.('report', instructions)}
+            onVersionChange={(v) => onVersionChange?.('report', v)}
+          />
+        )
       default:
         return null
     }
@@ -32,31 +60,31 @@ function TabContainer({ results }) {
   const getTabColors = (color, isActive) => {
     const colors = {
       visual: isActive
-        ? 'text-visual border-b-2 border-visual bg-visual-50'
-        : 'text-navy-400 hover:text-visual hover:bg-visual-50/50',
+        ? 'text-visual bg-visual/20 border-b-2 border-visual shadow-visual-glow'
+        : 'text-gray-400 hover:text-visual hover:bg-visual/10 border-b-2 border-transparent',
       audio: isActive
-        ? 'text-audio border-b-2 border-audio bg-audio-50'
-        : 'text-navy-400 hover:text-audio hover:bg-audio-50/50',
+        ? 'text-audio bg-audio/20 border-b-2 border-audio shadow-audio-glow'
+        : 'text-gray-400 hover:text-audio hover:bg-audio/10 border-b-2 border-transparent',
       kinesthetic: isActive
-        ? 'text-kinesthetic border-b-2 border-kinesthetic bg-kinesthetic-50'
-        : 'text-navy-400 hover:text-kinesthetic hover:bg-kinesthetic-50/50',
+        ? 'text-kinesthetic bg-kinesthetic/20 border-b-2 border-kinesthetic shadow-kinesthetic-glow'
+        : 'text-gray-400 hover:text-kinesthetic hover:bg-kinesthetic/10 border-b-2 border-transparent',
       readwrite: isActive
-        ? 'text-readwrite border-b-2 border-readwrite bg-readwrite-50'
-        : 'text-navy-400 hover:text-readwrite hover:bg-readwrite-50/50',
+        ? 'text-readwrite bg-readwrite/20 border-b-2 border-readwrite shadow-readwrite-glow'
+        : 'text-gray-400 hover:text-readwrite hover:bg-readwrite/10 border-b-2 border-transparent',
     }
     return colors[color]
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-navy-100">
+    <div className="card-glow overflow-hidden">
       {/* Tab Navigation */}
-      <div className="border-b border-navy-200 bg-navy-50">
+      <div className="border-b border-white/10 bg-dark-100/50">
         <nav className="flex">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-medium transition-all duration-200 ${getTabColors(tab.color, activeTab === tab.id)}`}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-medium transition-all duration-300 ${getTabColors(tab.color, activeTab === tab.id)}`}
             >
               <svg
                 className="w-5 h-5"

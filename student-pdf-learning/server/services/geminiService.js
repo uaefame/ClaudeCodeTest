@@ -57,20 +57,98 @@ const ttsModel = genAI.getGenerativeModel({
   }
 });
 
-async function generateReport(pdfData) {
-  const prompt = `You are an educational content expert. Analyze the following document content and create a comprehensive study report.
+// Helper function to get grade-appropriate context
+function getGradeContext(grade) {
+  const contexts = {
+    elementary: {
+      level: 'elementary school (ages 5-11)',
+      language: 'very simple words, short sentences, and fun comparisons',
+      examples: 'everyday examples that kids can relate to (toys, games, animals, family)',
+      tone: 'friendly, encouraging, and playful',
+      complexity: 'basic concepts only, no technical jargon'
+    },
+    middle: {
+      level: 'middle school (ages 11-14)',
+      language: 'clear and straightforward language with some technical terms explained',
+      examples: 'relatable examples from school, sports, social media, and teen life',
+      tone: 'engaging and supportive',
+      complexity: 'moderate complexity with step-by-step explanations'
+    },
+    high: {
+      level: 'high school (ages 14-18)',
+      language: 'academic language with proper terminology',
+      examples: 'real-world applications and practical examples',
+      tone: 'informative and professional',
+      complexity: 'full complexity with detailed explanations'
+    },
+    university: {
+      level: 'university/college level',
+      language: 'advanced academic language and technical terminology',
+      examples: 'professional and research-based examples',
+      tone: 'scholarly and comprehensive',
+      complexity: 'advanced concepts with in-depth analysis'
+    }
+  };
+  return contexts[grade] || contexts.high;
+}
+
+// Helper function to get difficulty adjustments
+function getDifficultyContext(difficulty) {
+  const contexts = {
+    easy: {
+      approach: 'The student finds this material easy, so focus on deeper insights, connections to other topics, and advanced applications they might not have considered.',
+      pacing: 'Move quickly through basics and focus on interesting extensions',
+      extras: 'Include challenging bonus content and thought-provoking questions'
+    },
+    medium: {
+      approach: 'The student has moderate understanding, so balance reinforcement of core concepts with gradual introduction of more complex ideas.',
+      pacing: 'Steady pace with clear explanations and helpful examples',
+      extras: 'Include both review material and new challenges'
+    },
+    hard: {
+      approach: 'The student finds this material challenging, so break everything down into smaller, manageable pieces. Use multiple explanations and analogies.',
+      pacing: 'Slow and thorough with lots of repetition and encouragement',
+      extras: 'Include extra practice, memory aids, and simplified summaries'
+    }
+  };
+  return contexts[difficulty] || contexts.medium;
+}
+
+async function generateReport(pdfData, options = {}) {
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const gradeCtx = getGradeContext(grade);
+  const diffCtx = getDifficultyContext(difficulty);
+  let prompt = `You are an educational content expert creating materials for a ${gradeCtx.level} student.
+
+STUDENT CONTEXT:
+- Grade Level: ${gradeCtx.level}
+- Language Style: Use ${gradeCtx.language}
+- Examples Should Be: ${gradeCtx.examples}
+- Tone: ${gradeCtx.tone}
+- Complexity: ${gradeCtx.complexity}
+
+DIFFICULTY ADJUSTMENT:
+- ${diffCtx.approach}
+- Pacing: ${diffCtx.pacing}
+- ${diffCtx.extras}
+
+Analyze the following document content and create a comprehensive study report tailored to this student.
 
 The report should include:
-1. **Overview**: A brief summary of the main topic
-2. **Key Concepts**: List and explain the most important concepts
-3. **Detailed Explanation**: In-depth explanation of each concept
-4. **Important Terms**: Glossary of key terms with definitions
+1. **Overview**: A brief summary of the main topic (appropriate for the grade level)
+2. **Key Concepts**: List and explain the most important concepts using ${gradeCtx.language}
+3. **Detailed Explanation**: In-depth explanation of each concept with ${gradeCtx.examples}
+4. **Important Terms**: Glossary of key terms with definitions appropriate for ${gradeCtx.level}
 5. **Summary**: A concise recap of everything covered
 
 Format the response in clean markdown.
 
 Document Content:
 ${pdfData.text}`;
+
+  if (additionalInstructions) {
+    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+  }
 
   try {
     const result = await textModel.generateContent(prompt);
@@ -82,8 +160,26 @@ ${pdfData.text}`;
   }
 }
 
-async function generateInteractiveLearning(pdfData) {
-  const prompt = `You are an expert educational content designer. Based on the following document, create an interactive learning experience.
+async function generateInteractiveLearning(pdfData, options = {}) {
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const gradeCtx = getGradeContext(grade);
+  const diffCtx = getDifficultyContext(difficulty);
+
+  let prompt = `You are an expert educational content designer creating materials for a ${gradeCtx.level} student.
+
+STUDENT CONTEXT:
+- Grade Level: ${gradeCtx.level}
+- Language Style: Use ${gradeCtx.language}
+- Examples Should Be: ${gradeCtx.examples}
+- Tone: ${gradeCtx.tone}
+- Complexity: ${gradeCtx.complexity}
+
+DIFFICULTY ADJUSTMENT:
+- ${diffCtx.approach}
+- Pacing: ${diffCtx.pacing}
+- ${diffCtx.extras}
+
+Based on the following document, create an interactive learning experience.
 
 IMPORTANT: Create content that helps students LEARN the concepts first through examples and interaction, then TEST their understanding with practice questions. The practice questions should use NEW examples NOT from the original document.
 
@@ -154,6 +250,10 @@ Generate 3-4 main concepts from the document. Each concept should have 4-5 diver
 Document Content:
 ${pdfData.text}`;
 
+  if (additionalInstructions) {
+    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+  }
+
   try {
     const result = await textModel.generateContent(prompt);
     const response = await result.response;
@@ -171,22 +271,42 @@ ${pdfData.text}`;
   }
 }
 
-async function generateAudioScript(pdfData) {
-  const prompt = `You are a friendly educational narrator. Create a spoken explanation script for the following document content.
+async function generateAudioScript(pdfData, options = {}) {
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const gradeCtx = getGradeContext(grade);
+  const diffCtx = getDifficultyContext(difficulty);
+
+  let prompt = `You are a friendly educational narrator creating content for a ${gradeCtx.level} student.
+
+STUDENT CONTEXT:
+- Grade Level: ${gradeCtx.level}
+- Language Style: Use ${gradeCtx.language}
+- Examples Should Be: ${gradeCtx.examples}
+- Tone: ${gradeCtx.tone}
+
+DIFFICULTY ADJUSTMENT:
+- ${diffCtx.approach}
+- Pacing: ${diffCtx.pacing}
+
+Create a spoken explanation script for the following document content.
 
 The script should:
-1. Start with a warm introduction
-2. Explain concepts in a conversational, easy-to-understand way
-3. Use analogies and examples where helpful
+1. Start with a warm, ${gradeCtx.tone} introduction appropriate for ${gradeCtx.level}
+2. Explain concepts using ${gradeCtx.language}
+3. Use ${gradeCtx.examples} as analogies
 4. Include natural transitions between topics
 5. End with a brief summary and encouragement
 
-Write it as if you're speaking directly to a student. Keep it engaging and approximately 2-3 minutes when read aloud (about 400-500 words).
+Write it as if you're speaking directly to a ${gradeCtx.level} student. Keep it engaging and approximately 2-3 minutes when read aloud (about 400-500 words).
 
 Do NOT include any stage directions, speaker labels, or formatting - just the text to be spoken.
 
 Document Content:
 ${pdfData.text}`;
+
+  if (additionalInstructions) {
+    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+  }
 
   try {
     // First generate the script text
@@ -231,12 +351,25 @@ ${pdfData.text}`;
   }
 }
 
-async function generateInfographic(pdfData) {
+async function generateInfographic(pdfData, options = {}) {
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const gradeCtx = getGradeContext(grade);
+  const diffCtx = getDifficultyContext(difficulty);
+
   // Extract key points for infographic
-  const summaryPrompt = `Summarize the following document into 5-7 key points that would work well in an infographic. Be concise - each point should be one short sentence.
+  let summaryPrompt = `Create content for a ${gradeCtx.level} student.
+
+Using ${gradeCtx.language}, summarize the following document into 5-7 key points that would work well in an infographic. Be concise - each point should be one short sentence appropriate for ${gradeCtx.level}.
+
+${difficulty === 'hard' ? 'Focus on the most essential concepts and use simple, memorable phrases.' : ''}
+${difficulty === 'easy' ? 'Include interesting insights and connections that go beyond the basics.' : ''}
 
 Document Content:
 ${pdfData.text}`;
+
+  if (additionalInstructions) {
+    summaryPrompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+  }
 
   try {
     // First, get key points
