@@ -260,10 +260,31 @@ async function processRerun(jobId, contentType, additionalInstructions, rerunId)
 
   try {
     const pdfData = { text: job.pdfText };
+
+    // Get the original generated content to pass to the AI for modification
+    let originalContent = null;
+    if (job.results) {
+      switch (contentType) {
+        case 'report':
+          originalContent = job.results.report;
+          break;
+        case 'interactiveLearning':
+          originalContent = job.results.interactiveLearning;
+          break;
+        case 'audioScript':
+          originalContent = job.results.audioScript;
+          break;
+        case 'infographic':
+          originalContent = job.results.infographic;
+          break;
+      }
+    }
+
     const options = {
       grade: job.grade,
       difficulty: job.difficulty,
-      additionalInstructions: additionalInstructions || ''
+      additionalInstructions: additionalInstructions || '',
+      originalContent: originalContent
     };
 
     // Update progress

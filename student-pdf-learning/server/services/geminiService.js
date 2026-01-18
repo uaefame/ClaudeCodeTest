@@ -115,9 +115,32 @@ function getDifficultyContext(difficulty) {
 }
 
 async function generateReport(pdfData, options = {}) {
-  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '', originalContent = null } = options;
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
+
+  // If we have original content and additional instructions, modify the existing content
+  if (originalContent && additionalInstructions) {
+    const modifyPrompt = `You are an educational content expert. A study report was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED REPORT:
+${originalContent}
+
+USER'S MODIFICATION REQUEST:
+${additionalInstructions}
+
+Please modify the above report according to the user's request. Keep the same general structure and information from the original, but apply the requested changes. Output the complete modified report in clean markdown format.`;
+
+    try {
+      const result = await textModel.generateContent(modifyPrompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      console.error('Report modification error:', error);
+      throw new Error('Failed to modify report: ' + error.message);
+    }
+  }
+
   let prompt = `You are an educational content expert creating materials for a ${gradeCtx.level} student.
 
 STUDENT CONTEXT:
@@ -165,9 +188,37 @@ Please generate the content following the original instructions, but incorporate
 }
 
 async function generateInteractiveLearning(pdfData, options = {}) {
-  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '', originalContent = null } = options;
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
+
+  // If we have original content and additional instructions, modify the existing content
+  if (originalContent && additionalInstructions) {
+    const originalJson = typeof originalContent === 'string' ? originalContent : JSON.stringify(originalContent, null, 2);
+    const modifyPrompt = `You are an expert educational content designer. An interactive learning module was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED CONTENT (JSON):
+${originalJson}
+
+USER'S MODIFICATION REQUEST:
+${additionalInstructions}
+
+Please modify the above interactive learning content according to the user's request. Keep the same JSON structure, but apply the requested changes to the content. Output ONLY valid JSON with the same structure.`;
+
+    try {
+      const result = await textModel.generateContent(modifyPrompt);
+      const response = await result.response;
+      const text = response.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('No valid JSON found in response');
+    } catch (error) {
+      console.error('Interactive learning modification error:', error);
+      throw new Error('Failed to modify interactive learning content: ' + error.message);
+    }
+  }
 
   let prompt = `You are an expert educational content designer creating materials for a ${gradeCtx.level} student.
 
@@ -280,9 +331,58 @@ Please generate the content following the original instructions, but incorporate
 }
 
 async function generateAudioScript(pdfData, options = {}) {
-  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '', originalContent = null } = options;
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
+
+  // If we have original content and additional instructions, modify the existing content
+  if (originalContent && additionalInstructions) {
+    const originalScript = originalContent?.script || (typeof originalContent === 'string' ? originalContent : '');
+    const modifyPrompt = `You are a friendly educational narrator. An audio script was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED SCRIPT:
+${originalScript}
+
+USER'S MODIFICATION REQUEST:
+${additionalInstructions}
+
+Please modify the above script according to the user's request. Keep the same general flow and information, but apply the requested changes. Output ONLY the modified script text (no stage directions or labels).`;
+
+    try {
+      const result = await textModel.generateContent(modifyPrompt);
+      const response = await result.response;
+      const script = response.text();
+
+      // Generate audio for the modified script
+      try {
+        const ttsPrompt = `Read the following educational script in a warm, engaging, and natural tone as if you're a friendly teacher explaining to a student:\n\n${script}`;
+        const audioResult = await ttsModel.generateContent(ttsPrompt);
+        const audioResponse = await audioResult.response;
+
+        if (audioResponse.candidates && audioResponse.candidates[0].content.parts) {
+          for (const part of audioResponse.candidates[0].content.parts) {
+            if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+              const wavData = pcmToWav(part.inlineData.data, 24000, 1, 16);
+              return {
+                script: script,
+                audio: {
+                  mimeType: 'audio/wav',
+                  data: wavData
+                }
+              };
+            }
+          }
+        }
+        return { script: script, audio: null };
+      } catch (ttsError) {
+        console.log('TTS generation fallback:', ttsError.message);
+        return { script: script, audio: null };
+      }
+    } catch (error) {
+      console.error('Audio script modification error:', error);
+      throw new Error('Failed to modify audio script: ' + error.message);
+    }
+  }
 
   let prompt = `You are a friendly educational narrator creating content for a ${gradeCtx.level} student.
 
@@ -364,9 +464,70 @@ Please generate the content following the original instructions, but incorporate
 }
 
 async function generateInfographic(pdfData, options = {}) {
-  const { grade = 'high', difficulty = 'medium', additionalInstructions = '' } = options;
+  const { grade = 'high', difficulty = 'medium', additionalInstructions = '', originalContent = null } = options;
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
+
+  // If we have original content and additional instructions, modify the existing content
+  if (originalContent && additionalInstructions) {
+    const originalKeyPoints = originalContent?.keyPoints || (typeof originalContent === 'string' ? originalContent : '');
+    const modifyPrompt = `You are creating visual summary content for a ${gradeCtx.level} student.
+
+ORIGINAL KEY POINTS:
+${originalKeyPoints}
+
+USER'S MODIFICATION REQUEST:
+${additionalInstructions}
+
+Please modify the above key points according to the user's request. Keep the same general topics but apply the requested changes. Output 5-7 concise key points, one per line.`;
+
+    try {
+      const result = await textModel.generateContent(modifyPrompt);
+      const keyPoints = (await result.response).text();
+
+      // Try to generate new infographic image
+      const infographicPrompt = `Create a beautiful, educational infographic about the following topic.
+
+Key points to visualize:
+${keyPoints}
+
+Style: Modern, clean, colorful educational infographic with icons, clear hierarchy, and easy-to-read text. Use a vertical layout suitable for students.`;
+
+      try {
+        const imageResult = await imageModel.generateContent(infographicPrompt);
+        const response = await imageResult.response;
+
+        if (response.candidates && response.candidates[0].content.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              return {
+                type: 'image',
+                mimeType: part.inlineData.mimeType,
+                data: part.inlineData.data,
+                keyPoints: keyPoints
+              };
+            }
+          }
+        }
+
+        return {
+          type: 'text',
+          keyPoints: keyPoints,
+          message: 'Image generation not available, showing text summary'
+        };
+      } catch (imageError) {
+        console.log('Image generation fallback:', imageError.message);
+        return {
+          type: 'text',
+          keyPoints: keyPoints,
+          message: 'Using text-based infographic (image generation requires API access)'
+        };
+      }
+    } catch (error) {
+      console.error('Infographic modification error:', error);
+      throw new Error('Failed to modify infographic: ' + error.message);
+    }
+  }
 
   // Extract key points for infographic
   let summaryPrompt = `Create content for a ${gradeCtx.level} student.
