@@ -119,9 +119,11 @@ async function generateReport(pdfData, options = {}) {
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
 
-  // If we have original content and additional instructions, modify the existing content
-  if (originalContent && additionalInstructions) {
-    const modifyPrompt = `You are an educational content expert. A study report was previously generated for a ${gradeCtx.level} student.
+  // If we have original content, modify or regenerate based on it
+  if (originalContent) {
+    let modifyPrompt;
+    if (additionalInstructions) {
+      modifyPrompt = `You are an educational content expert. A study report was previously generated for a ${gradeCtx.level} student.
 
 ORIGINAL GENERATED REPORT:
 ${originalContent}
@@ -130,6 +132,14 @@ USER'S MODIFICATION REQUEST:
 ${additionalInstructions}
 
 Please modify the above report according to the user's request. Keep the same general structure and information from the original, but apply the requested changes. Output the complete modified report in clean markdown format.`;
+    } else {
+      modifyPrompt = `You are an educational content expert. A study report was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED REPORT:
+${originalContent}
+
+Please regenerate this report with improved clarity and flow. Keep the same structure, topics, and key information, but rephrase and enhance the content. Output the complete report in clean markdown format.`;
+    }
 
     try {
       const result = await textModel.generateContent(modifyPrompt);
@@ -192,10 +202,12 @@ async function generateInteractiveLearning(pdfData, options = {}) {
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
 
-  // If we have original content and additional instructions, modify the existing content
-  if (originalContent && additionalInstructions) {
+  // If we have original content, modify or regenerate based on it
+  if (originalContent) {
     const originalJson = typeof originalContent === 'string' ? originalContent : JSON.stringify(originalContent, null, 2);
-    const modifyPrompt = `You are an expert educational content designer. An interactive learning module was previously generated for a ${gradeCtx.level} student.
+    let modifyPrompt;
+    if (additionalInstructions) {
+      modifyPrompt = `You are an expert educational content designer. An interactive learning module was previously generated for a ${gradeCtx.level} student.
 
 ORIGINAL GENERATED CONTENT (JSON):
 ${originalJson}
@@ -204,6 +216,14 @@ USER'S MODIFICATION REQUEST:
 ${additionalInstructions}
 
 Please modify the above interactive learning content according to the user's request. Keep the same JSON structure, but apply the requested changes to the content. Output ONLY valid JSON with the same structure.`;
+    } else {
+      modifyPrompt = `You are an expert educational content designer. An interactive learning module was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED CONTENT (JSON):
+${originalJson}
+
+Please regenerate this interactive learning content with improved examples and explanations. Keep the same JSON structure, topics, and concepts, but enhance the content quality. Output ONLY valid JSON with the same structure.`;
+    }
 
     try {
       const result = await textModel.generateContent(modifyPrompt);
@@ -335,10 +355,12 @@ async function generateAudioScript(pdfData, options = {}) {
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
 
-  // If we have original content and additional instructions, modify the existing content
-  if (originalContent && additionalInstructions) {
+  // If we have original content, modify or regenerate based on it
+  if (originalContent) {
     const originalScript = originalContent?.script || (typeof originalContent === 'string' ? originalContent : '');
-    const modifyPrompt = `You are a friendly educational narrator. An audio script was previously generated for a ${gradeCtx.level} student.
+    let modifyPrompt;
+    if (additionalInstructions) {
+      modifyPrompt = `You are a friendly educational narrator. An audio script was previously generated for a ${gradeCtx.level} student.
 
 ORIGINAL GENERATED SCRIPT:
 ${originalScript}
@@ -347,6 +369,14 @@ USER'S MODIFICATION REQUEST:
 ${additionalInstructions}
 
 Please modify the above script according to the user's request. Keep the same general flow and information, but apply the requested changes. Output ONLY the modified script text (no stage directions or labels).`;
+    } else {
+      modifyPrompt = `You are a friendly educational narrator. An audio script was previously generated for a ${gradeCtx.level} student.
+
+ORIGINAL GENERATED SCRIPT:
+${originalScript}
+
+Please regenerate this script with improved flow and engagement. Keep the same topics and key information, but rephrase for better clarity. Output ONLY the script text (no stage directions or labels).`;
+    }
 
     try {
       const result = await textModel.generateContent(modifyPrompt);
@@ -468,10 +498,12 @@ async function generateInfographic(pdfData, options = {}) {
   const gradeCtx = getGradeContext(grade);
   const diffCtx = getDifficultyContext(difficulty);
 
-  // If we have original content and additional instructions, modify the existing content
-  if (originalContent && additionalInstructions) {
+  // If we have original content, modify or regenerate based on it
+  if (originalContent) {
     const originalKeyPoints = originalContent?.keyPoints || (typeof originalContent === 'string' ? originalContent : '');
-    const modifyPrompt = `You are creating visual summary content for a ${gradeCtx.level} student.
+    let modifyPrompt;
+    if (additionalInstructions) {
+      modifyPrompt = `You are creating visual summary content for a ${gradeCtx.level} student.
 
 ORIGINAL KEY POINTS:
 ${originalKeyPoints}
@@ -480,6 +512,14 @@ USER'S MODIFICATION REQUEST:
 ${additionalInstructions}
 
 Please modify the above key points according to the user's request. Keep the same general topics but apply the requested changes. Output 5-7 concise key points, one per line.`;
+    } else {
+      modifyPrompt = `You are creating visual summary content for a ${gradeCtx.level} student.
+
+ORIGINAL KEY POINTS:
+${originalKeyPoints}
+
+Please regenerate these key points with improved clarity and impact. Keep the same topics and information, but rephrase for better understanding. Output 5-7 concise key points, one per line.`;
+    }
 
     try {
       const result = await textModel.generateContent(modifyPrompt);
