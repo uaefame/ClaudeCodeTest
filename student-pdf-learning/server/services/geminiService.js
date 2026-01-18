@@ -147,7 +147,11 @@ Document Content:
 ${pdfData.text}`;
 
   if (additionalInstructions) {
-    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+    prompt += `\n\nIMPORTANT - ADDITIONAL USER INSTRUCTIONS:
+The user has requested the following modifications or focus areas while still following all the original instructions above:
+${additionalInstructions}
+
+Please generate the content following the original instructions, but incorporate these additional requirements.`;
   }
 
   try {
@@ -251,7 +255,11 @@ Document Content:
 ${pdfData.text}`;
 
   if (additionalInstructions) {
-    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+    prompt += `\n\nIMPORTANT - ADDITIONAL USER INSTRUCTIONS:
+The user has requested the following modifications or focus areas while still following all the original instructions above:
+${additionalInstructions}
+
+Please generate the content following the original instructions, but incorporate these additional requirements.`;
   }
 
   try {
@@ -305,7 +313,11 @@ Document Content:
 ${pdfData.text}`;
 
   if (additionalInstructions) {
-    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+    prompt += `\n\nIMPORTANT - ADDITIONAL USER INSTRUCTIONS:
+The user has requested the following modifications or focus areas while still following all the original instructions above:
+${additionalInstructions}
+
+Please generate the content following the original instructions, but incorporate these additional requirements.`;
   }
 
   try {
@@ -368,7 +380,11 @@ Document Content:
 ${pdfData.text}`;
 
   if (additionalInstructions) {
-    summaryPrompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${additionalInstructions}`;
+    summaryPrompt += `\n\nIMPORTANT - ADDITIONAL USER INSTRUCTIONS:
+The user has requested the following modifications or focus areas while still following all the original instructions above:
+${additionalInstructions}
+
+Please generate the content following the original instructions, but incorporate these additional requirements.`;
   }
 
   try {
