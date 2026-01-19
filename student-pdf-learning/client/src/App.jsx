@@ -119,7 +119,7 @@ function App() {
       </div>
 
       {/* Header */}
-      <header className="glass border-b border-white/10 sticky top-0 z-50">
+      <header className="glass border-b border-[var(--border-color)] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-5">
           <div className="flex items-center gap-3">
             {/* Masari Logo - Four VARK paths with glow */}
@@ -130,10 +130,10 @@ function App() {
               <div className="w-2 h-8 bg-gradient-to-b from-kinesthetic to-kinesthetic-600 rounded-full transform rotate-12 shadow-kinesthetic-glow"></div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white font-heading tracking-tight">
+              <h1 className="text-2xl font-bold text-adaptive font-heading tracking-tight">
                 Masark
               </h1>
-              <p className="text-gray-400 text-sm font-body">
+              <p className="text-adaptive-secondary text-sm font-body">
                 Learn Your Way
               </p>
             </div>
@@ -154,10 +154,10 @@ function App() {
         {!results && (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white font-heading mb-2">
+              <h2 className="text-3xl font-bold text-adaptive font-heading mb-2">
                 Personalized Learning, <span className="bg-gradient-to-r from-visual via-audio to-kinesthetic bg-clip-text text-transparent">Your Way</span>
               </h2>
-              <p className="text-gray-400 font-body max-w-2xl mx-auto">
+              <p className="text-adaptive-secondary font-body max-w-2xl mx-auto">
                 Upload your homework or textbook chapter to generate learning materials
                 tailored to your VARK learning style
               </p>
@@ -194,29 +194,29 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="glass border-t border-white/10">
+      <footer className="glass border-t border-[var(--border-color)]">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
+            <div className="flex items-center gap-2 text-adaptive-secondary text-sm">
               <span>Powered by</span>
-              <span className="text-white font-medium bg-gradient-to-r from-visual via-audio to-kinesthetic bg-clip-text text-transparent">Google Gemini AI</span>
+              <span className="font-medium bg-gradient-to-r from-visual via-audio to-kinesthetic bg-clip-text text-transparent">Google Gemini AI</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-xs">
                 <span className="w-3 h-3 bg-visual rounded-full shadow-visual-glow"></span>
-                <span className="text-gray-400">Visual</span>
+                <span className="text-adaptive-secondary">Visual</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="w-3 h-3 bg-audio rounded-full shadow-audio-glow"></span>
-                <span className="text-gray-400">Audio</span>
+                <span className="text-adaptive-secondary">Audio</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="w-3 h-3 bg-readwrite rounded-full shadow-readwrite-glow"></span>
-                <span className="text-gray-400">Read/Write</span>
+                <span className="text-adaptive-secondary">Read/Write</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="w-3 h-3 bg-kinesthetic rounded-full shadow-kinesthetic-glow"></span>
-                <span className="text-gray-400">Kinesthetic</span>
+                <span className="text-adaptive-secondary">Kinesthetic</span>
               </div>
             </div>
           </div>
