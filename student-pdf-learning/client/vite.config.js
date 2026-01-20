@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: process.env.DOCKER ? 'http://server:5000' : 'http://localhost:5000',
+        target: process.env.DOCKER ? 'http://server:5001' : 'http://localhost:5001',
         changeOrigin: true
       }
     }
