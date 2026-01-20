@@ -4,7 +4,8 @@ function RerunControl({
   color = 'visual',
   rerunState = {},
   onRerun,
-  onVersionChange
+  onVersionChange,
+  hideOriginal = false
 }) {
   const [additionalInstructions, setAdditionalInstructions] = useState('')
   const [showInput, setShowInput] = useState(false)
@@ -33,16 +34,19 @@ function RerunControl({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-400 mr-2">Version:</span>
 
-          <button
-            onClick={() => handleVersionChange(0)}
-            className={`px-3 py-1.5 text-sm rounded-lg border transition-all duration-300 ${
-              activeVersion === 0
-                ? `bg-${color}/20 text-${color} border-${color}`
-                : 'bg-dark-200 text-gray-400 hover:bg-dark-300 border-transparent'
-            }`}
-          >
-            Original
-          </button>
+          {/* Only show Original button if there's original content */}
+          {!hideOriginal && (
+            <button
+              onClick={() => handleVersionChange(0)}
+              className={`px-3 py-1.5 text-sm rounded-lg border transition-all duration-300 ${
+                activeVersion === 0
+                  ? `bg-${color}/20 text-${color} border-${color}`
+                  : 'bg-dark-200 text-gray-400 hover:bg-dark-300 border-transparent'
+              }`}
+            >
+              Original
+            </button>
+          )}
 
           {versions.map((version, idx) => (
             <button
