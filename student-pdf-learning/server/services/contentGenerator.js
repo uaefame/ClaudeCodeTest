@@ -5,7 +5,7 @@ const geminiService = require('./geminiService');
  * Orchestrates the generation of all learning content from PDF data
  */
 
-async function generateAllContent(pdfData, progressCallback = null) {
+async function generateAllContent(pdfData, progressCallback = null, options = {}) {
   const results = {
     report: null,
     interactiveLearning: null,
@@ -19,21 +19,40 @@ async function generateAllContent(pdfData, progressCallback = null) {
     }
   };
 
-  // Generate report
-  updateProgress('Generating detailed report...', 25);
-  results.report = await geminiService.generateReport(pdfData);
+  // Get selected content types (default to all if not specified)
+  const contentTypes = options.contentTypes || ['visual', 'audio', 'readwrite', 'kinesthetic'];
 
-  // Generate interactive learning content
-  updateProgress('Creating interactive learning experience...', 45);
-  results.interactiveLearning = await geminiService.generateInteractiveLearning(pdfData);
+  // Calculate progress steps based on selected content types
+  const totalSteps = contentTypes.length;
+  let currentStep = 0;
 
-  // Generate audio script
-  updateProgress('Creating audio explanation...', 65);
-  results.audioScript = await geminiService.generateAudioScript(pdfData);
+  // Generate report (readwrite)
+  if (contentTypes.includes('readwrite')) {
+    currentStep++;
+    updateProgress('Generating detailed report...', Math.round((currentStep / totalSteps) * 80) + 10);
+    results.report = await geminiService.generateReport(pdfData, options);
+  }
 
-  // Generate infographic
-  updateProgress('Generating infographic...', 85);
-  results.infographic = await geminiService.generateInfographic(pdfData);
+  // Generate interactive learning content (kinesthetic)
+  if (contentTypes.includes('kinesthetic')) {
+    currentStep++;
+    updateProgress('Creating interactive learning experience...', Math.round((currentStep / totalSteps) * 80) + 10);
+    results.interactiveLearning = await geminiService.generateInteractiveLearning(pdfData, options);
+  }
+
+  // Generate audio script (audio)
+  if (contentTypes.includes('audio')) {
+    currentStep++;
+    updateProgress('Creating audio explanation...', Math.round((currentStep / totalSteps) * 80) + 10);
+    results.audioScript = await geminiService.generateAudioScript(pdfData, options);
+  }
+
+  // Generate infographic (visual)
+  if (contentTypes.includes('visual')) {
+    currentStep++;
+    updateProgress('Generating infographic...', Math.round((currentStep / totalSteps) * 80) + 10);
+    results.infographic = await geminiService.generateInfographic(pdfData, options);
+  }
 
   return results;
 }
