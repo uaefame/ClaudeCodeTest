@@ -162,9 +162,11 @@ async function processDocument(jobId, filePath, options = {}) {
     job.step = 'Extracting text from PDF...';
     processingResults.set(jobId, { ...job });
 
-    const pdfText = await pdfParser.extractText(filePath);
+    const pdfResult = await pdfParser.extractText(filePath);
+    // pdfParser returns { text, numPages, info } - extract just the text string
+    const pdfText = pdfResult.text;
 
-    // Store pdfText for rerun capability
+    // Store pdfText (the actual text string) for rerun capability
     job.pdfText = pdfText;
     processingResults.set(jobId, { ...job });
 

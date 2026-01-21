@@ -19,6 +19,10 @@ async function generateAllContent(pdfData, progressCallback = null, options = {}
     }
   };
 
+  // Normalize pdfData to always be an object with text property
+  // This handles both raw string input and { text: string } input
+  const normalizedPdfData = typeof pdfData === 'string' ? { text: pdfData } : pdfData;
+
   // Get selected content types (default to all if not specified)
   const contentTypes = options.contentTypes || ['visual', 'audio', 'readwrite', 'kinesthetic'];
 
@@ -30,28 +34,28 @@ async function generateAllContent(pdfData, progressCallback = null, options = {}
   if (contentTypes.includes('readwrite')) {
     currentStep++;
     updateProgress('Generating detailed report...', Math.round((currentStep / totalSteps) * 80) + 10);
-    results.report = await geminiService.generateReport(pdfData, options);
+    results.report = await geminiService.generateReport(normalizedPdfData, options);
   }
 
   // Generate interactive learning content (kinesthetic)
   if (contentTypes.includes('kinesthetic')) {
     currentStep++;
     updateProgress('Creating interactive learning experience...', Math.round((currentStep / totalSteps) * 80) + 10);
-    results.interactiveLearning = await geminiService.generateInteractiveLearning(pdfData, options);
+    results.interactiveLearning = await geminiService.generateInteractiveLearning(normalizedPdfData, options);
   }
 
   // Generate audio script (audio)
   if (contentTypes.includes('audio')) {
     currentStep++;
     updateProgress('Creating audio explanation...', Math.round((currentStep / totalSteps) * 80) + 10);
-    results.audioScript = await geminiService.generateAudioScript(pdfData, options);
+    results.audioScript = await geminiService.generateAudioScript(normalizedPdfData, options);
   }
 
   // Generate infographic (visual)
   if (contentTypes.includes('visual')) {
     currentStep++;
     updateProgress('Generating infographic...', Math.round((currentStep / totalSteps) * 80) + 10);
-    results.infographic = await geminiService.generateInfographic(pdfData, options);
+    results.infographic = await geminiService.generateInfographic(normalizedPdfData, options);
   }
 
   return results;
