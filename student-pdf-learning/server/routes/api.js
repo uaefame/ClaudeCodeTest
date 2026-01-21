@@ -307,25 +307,58 @@ async function processRerun(jobId, contentType, additionalInstructions, rerunId)
         break;
     }
 
-    // Initialize versions array if needed
-    if (!job.rerunVersions[contentType]) {
-      job.rerunVersions[contentType] = [];
+    // Check if original content exists
+    const hasOriginalContent = originalContent !== null && originalContent !== undefined;
+
+    if (!hasOriginalContent) {
+      // No original content - store this as the original
+      if (!job.results) {
+        job.results = {};
+      }
+      switch (contentType) {
+        case 'report':
+          job.results.report = result;
+          break;
+        case 'interactiveLearning':
+          job.results.interactiveLearning = result;
+          break;
+        case 'audioScript':
+          job.results.audioScript = result;
+          break;
+        case 'infographic':
+          job.results.infographic = result;
+          break;
+      }
+
+      // Update status - mark as completed but no versions added
+      job.rerunStatus[contentType] = {
+        id: rerunId,
+        status: 'completed',
+        progress: 100,
+        isOriginal: true // Flag to indicate this was stored as original
+      };
+    } else {
+      // Original content exists - store as a new version
+      // Initialize versions array if needed
+      if (!job.rerunVersions[contentType]) {
+        job.rerunVersions[contentType] = [];
+      }
+
+      // Store new version
+      job.rerunVersions[contentType].push({
+        id: rerunId,
+        data: result,
+        instructions: additionalInstructions || '',
+        timestamp: new Date().toISOString()
+      });
+
+      // Update status
+      job.rerunStatus[contentType] = {
+        id: rerunId,
+        status: 'completed',
+        progress: 100
+      };
     }
-
-    // Store new version
-    job.rerunVersions[contentType].push({
-      id: rerunId,
-      data: result,
-      instructions: additionalInstructions || '',
-      timestamp: new Date().toISOString()
-    });
-
-    // Update status
-    job.rerunStatus[contentType] = {
-      id: rerunId,
-      status: 'completed',
-      progress: 100
-    };
 
     processingResults.set(jobId, { ...job });
 

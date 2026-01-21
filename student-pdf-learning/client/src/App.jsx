@@ -74,16 +74,36 @@ function App() {
         const rerunStatus = data.rerunStatus?.[contentType]
 
         if (rerunStatus?.status === 'completed') {
-          const versions = data.rerunVersions?.[contentType] || []
-          setRerunStates(prev => ({
-            ...prev,
-            [contentType]: {
-              isLoading: false,
-              versions: versions,
-              activeVersion: versions.length,
-              error: null
-            }
-          }))
+          // Check if this was stored as original content (first generation for this type)
+          if (rerunStatus.isOriginal) {
+            // Update results with the new original content
+            setResults(prev => ({
+              ...prev,
+              ...data.results
+            }))
+            // Reset rerun state for this content type (no versions yet)
+            setRerunStates(prev => ({
+              ...prev,
+              [contentType]: {
+                isLoading: false,
+                versions: [],
+                activeVersion: 0,
+                error: null
+              }
+            }))
+          } else {
+            // This is a regeneration - add to versions
+            const versions = data.rerunVersions?.[contentType] || []
+            setRerunStates(prev => ({
+              ...prev,
+              [contentType]: {
+                isLoading: false,
+                versions: versions,
+                activeVersion: versions.length,
+                error: null
+              }
+            }))
+          }
         } else if (rerunStatus?.status === 'error') {
           setRerunStates(prev => ({
             ...prev,
