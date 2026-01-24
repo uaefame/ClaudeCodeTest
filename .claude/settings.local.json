@@ -3,7 +3,11 @@
     "allow": [
       "WebSearch",
       "Bash(pkill:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git restore:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(zip:*)"
     ]
   }
 }
