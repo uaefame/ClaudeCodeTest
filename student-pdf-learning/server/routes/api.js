@@ -6,8 +6,13 @@ const { v4: uuidv4 } = require('uuid');
 const pdfParser = require('../services/pdfParser');
 const contentGenerator = require('../services/contentGenerator');
 const geminiService = require('../services/geminiService');
+const { optionalAuth, requireAuth } = require('../middleware/auth');
+const Upload = require('../models/Upload');
 
 const router = express.Router();
+
+// Apply optional auth to all routes
+router.use(optionalAuth);
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -63,7 +68,7 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
       console.warn('Failed to parse contentTypes, using defaults');
     }
 
-    // Initialize job status
+    // Initialize job status in memory
     processingResults.set(jobId, {
       status: 'processing',
       progress: 0,
@@ -71,8 +76,26 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
       fileName: req.file.originalname,
       grade,
       difficulty,
-      contentTypes
+      contentTypes,
+      userId: req.user?._id || null
     });
+
+    // Also save to MongoDB for persistence (especially for logged-in users)
+    try {
+      const uploadRecord = new Upload({
+        jobId,
+        userId: req.user?._id || null,
+        fileName: req.file.originalname,
+        filePath,
+        grade,
+        difficulty,
+        contentTypes,
+        status: 'processing'
+      });
+      await uploadRecord.save();
+    } catch (dbError) {
+      console.warn('Failed to save upload to database:', dbError.message);
+    }
 
     // Start async processing with grade, difficulty, and content types
     processDocument(jobId, filePath, { grade, difficulty, contentTypes });
@@ -374,5 +397,19 @@ async function processRerun(jobId, contentType, additionalInstructions, rerunId)
     processingResults.set(jobId, { ...job });
   }
 }
+
+// Get user's upload history (requires authentication)
+router.get('/history', requireAuth, async (req, res) => {
+  try {
+    const uploads = await Upload.find({ userId: req.user._id })
+      .select('jobId fileName status createdAt grade difficulty')
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    res.json({ uploads });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;

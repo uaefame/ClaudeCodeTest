@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import FileUpload from './components/FileUpload'
 import TabContainer from './components/TabContainer'
+import { AuthProvider } from './contexts/AuthContext'
+import LoginButton from './components/LoginButton'
+import UserHistory from './components/UserHistory'
+import { API_URL } from './config'
 
 function App() {
   const [results, setResults] = useState(null)
@@ -45,9 +49,10 @@ function App() {
     }))
 
     try {
-      const response = await fetch('/api/rerun', {
+      const response = await fetch(`${API_URL}/api/rerun`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ jobId, contentType, additionalInstructions })
       })
 
@@ -68,7 +73,7 @@ function App() {
   const pollForRerunResult = async (contentType, rerunId) => {
     const poll = async () => {
       try {
-        const response = await fetch(`/api/status/${jobId}`)
+        const response = await fetch(`${API_URL}/api/status/${jobId}`, { credentials: 'include' })
         const data = await response.json()
 
         const rerunStatus = data.rerunStatus?.[contentType]
@@ -130,6 +135,7 @@ function App() {
   }
 
   return (
+    <AuthProvider>
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background gradient effects */}
       <div className="fixed inset-0 -z-10">
@@ -141,22 +147,25 @@ function App() {
       {/* Header */}
       <header className="glass border-b border-[var(--border-color)] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-5">
-          <div className="flex items-center gap-3">
-            {/* Masari Logo - Four VARK paths with glow */}
-            <div className="flex items-center gap-0.5 float-animation">
-              <div className="w-2 h-8 bg-gradient-to-b from-visual to-visual-600 rounded-full transform -rotate-12 shadow-visual-glow"></div>
-              <div className="w-2 h-8 bg-gradient-to-b from-audio to-audio-600 rounded-full transform -rotate-4 shadow-audio-glow"></div>
-              <div className="w-2 h-8 bg-gradient-to-b from-readwrite to-readwrite-600 rounded-full transform rotate-4 shadow-readwrite-glow"></div>
-              <div className="w-2 h-8 bg-gradient-to-b from-kinesthetic to-kinesthetic-600 rounded-full transform rotate-12 shadow-kinesthetic-glow"></div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Masari Logo - Four VARK paths with glow */}
+              <div className="flex items-center gap-0.5 float-animation">
+                <div className="w-2 h-8 bg-gradient-to-b from-visual to-visual-600 rounded-full transform -rotate-12 shadow-visual-glow"></div>
+                <div className="w-2 h-8 bg-gradient-to-b from-audio to-audio-600 rounded-full transform -rotate-4 shadow-audio-glow"></div>
+                <div className="w-2 h-8 bg-gradient-to-b from-readwrite to-readwrite-600 rounded-full transform rotate-4 shadow-readwrite-glow"></div>
+                <div className="w-2 h-8 bg-gradient-to-b from-kinesthetic to-kinesthetic-600 rounded-full transform rotate-12 shadow-kinesthetic-glow"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-adaptive font-heading tracking-tight">
+                  Masark
+                </h1>
+                <p className="text-adaptive-secondary text-sm font-body">
+                  Learn Your Way
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-adaptive font-heading tracking-tight">
-                Masark
-              </h1>
-              <p className="text-adaptive-secondary text-sm font-body">
-                Learn Your Way
-              </p>
-            </div>
+            <LoginButton />
           </div>
         </div>
       </header>
@@ -173,6 +182,7 @@ function App() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {!results && (
           <div className="space-y-6">
+            <UserHistory onSelectUpload={(jobId) => console.log('Load upload:', jobId)} />
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-adaptive font-heading mb-2">
                 Personalized Learning, <span className="bg-gradient-to-r from-visual via-audio to-kinesthetic bg-clip-text text-transparent">Your Way</span>
@@ -243,6 +253,7 @@ function App() {
         </div>
       </footer>
     </div>
+    </AuthProvider>
   )
 }
 

@@ -1,0 +1,15 @@
+{
+  "name": "masark",
+  "version": "1.0.0",
+  "description": "Masark - Learn Your Way with VARK Learning Styles",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm install && npm run build",
+    "start": "cd server && npm start",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

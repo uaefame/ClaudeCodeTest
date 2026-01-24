@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { API_URL } from '../config'
 
 const GRADE_LEVELS = [
   { value: 'elementary', label: 'Elementary School (K-5)', description: 'Ages 5-11' },
@@ -111,8 +112,9 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
       formData.append('difficulty', difficulty)
       formData.append('contentTypes', JSON.stringify(contentTypes))
 
-      const uploadResponse = await fetch('/api/upload', {
+      const uploadResponse = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
+        credentials: 'include',
         body: formData
       })
 
@@ -144,7 +146,7 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
   const pollForResults = async (jobId) => {
     const poll = async () => {
       try {
-        const response = await fetch(`/api/status/${jobId}`)
+        const response = await fetch(`${API_URL}/api/status/${jobId}`, { credentials: 'include' })
         const data = await response.json()
 
         onProgressUpdate({
