@@ -30,7 +30,11 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
   const [difficulty, setDifficulty] = useState('')
   const [contentTypes, setContentTypes] = useState(['visual', 'audio', 'readwrite', 'kinesthetic']) // All selected by default
   const [step, setStep] = useState('upload') // 'upload', 'configure', 'processing'
+  const [includePreviousWork, setIncludePreviousWork] = useState(false)
+  const [previousWorkFile, setPreviousWorkFile] = useState(null)
+  const [previousWorkFileName, setPreviousWorkFileName] = useState(null)
   const inputRef = useRef(null)
+  const previousWorkInputRef = useRef(null)
 
   const toggleContentType = (typeId) => {
     setContentTypes(prev =>
@@ -90,6 +94,32 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
     setStep('configure')
   }
 
+  const handlePreviousWorkChange = (e) => {
+    e.preventDefault()
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      if (file.type !== 'application/pdf') {
+        setError('Previous work must be a PDF file')
+        return
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Previous work file must be less than 10MB')
+        return
+      }
+      setError(null)
+      setPreviousWorkFile(file)
+      setPreviousWorkFileName(file.name)
+    }
+  }
+
+  const clearPreviousWork = () => {
+    setPreviousWorkFile(null)
+    setPreviousWorkFileName(null)
+    if (previousWorkInputRef.current) {
+      previousWorkInputRef.current.value = ''
+    }
+  }
+
   const handleStartProcessing = async () => {
     if (!selectedFile || !grade || !difficulty) {
       setError('Please select grade level and difficulty')
@@ -111,6 +141,9 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
       formData.append('grade', grade)
       formData.append('difficulty', difficulty)
       formData.append('contentTypes', JSON.stringify(contentTypes))
+      if (includePreviousWork && previousWorkFile) {
+        formData.append('previousWork', previousWorkFile)
+      }
 
       const uploadResponse = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
@@ -140,6 +173,9 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
     setGrade('')
     setDifficulty('')
     setContentTypes(['visual', 'audio', 'readwrite', 'kinesthetic'])
+    setIncludePreviousWork(false)
+    setPreviousWorkFile(null)
+    setPreviousWorkFileName(null)
     setError(null)
   }
 
@@ -313,6 +349,88 @@ function FileUpload({ onProcessingStart, onProcessingComplete, onProgressUpdate,
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Gap Analysis - Previous Work Upload */}
+          <div className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+            includePreviousWork
+              ? 'border-audio/50 bg-audio/5'
+              : 'border-gray-600 bg-dark-200/50'
+          }`}>
+            <div className="flex items-start gap-3">
+              <button
+                onClick={() => {
+                  setIncludePreviousWork(!includePreviousWork)
+                  if (includePreviousWork) {
+                    clearPreviousWork()
+                  }
+                }}
+                className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                  includePreviousWork
+                    ? 'bg-audio shadow-audio-glow'
+                    : 'bg-dark-300 border border-gray-500'
+                }`}
+              >
+                {includePreviousWork && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+              <div className="flex-1">
+                <p className={`font-medium ${includePreviousWork ? 'text-audio' : 'text-white'}`}>
+                  Personalized Gap Analysis (Optional)
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Upload your previous homework or test to identify learning gaps and personalize content
+                </p>
+              </div>
+            </div>
+
+            {includePreviousWork && (
+              <div className="mt-4 ml-8">
+                <input
+                  ref={previousWorkInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handlePreviousWorkChange}
+                  className="hidden"
+                />
+
+                {!previousWorkFile ? (
+                  <button
+                    onClick={() => previousWorkInputRef.current?.click()}
+                    className="w-full p-4 border-2 border-dashed border-audio/30 rounded-xl text-center hover:border-audio/50 hover:bg-audio/5 transition-all duration-300"
+                  >
+                    <svg className="w-8 h-8 mx-auto text-audio/60 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-sm text-audio/80">Click to upload previous homework or test</p>
+                    <p className="text-xs text-gray-500 mt-1">PDF format, max 10MB</p>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 bg-audio/10 rounded-xl border border-audio/20">
+                    <div className="p-2 bg-audio/20 rounded-lg">
+                      <svg className="w-5 h-5 text-audio" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-audio font-medium truncate">{previousWorkFileName}</p>
+                      <p className="text-xs text-gray-400">Previous work uploaded</p>
+                    </div>
+                    <button
+                      onClick={clearPreviousWork}
+                      className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* VARK Content Type Selection */}
