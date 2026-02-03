@@ -2,13 +2,16 @@ import { useState } from 'react'
 import FileUpload from './components/FileUpload'
 import TabContainer from './components/TabContainer'
 import VarkAssessment from './components/VarkAssessment'
-import { AuthProvider } from './contexts/AuthContext'
+import TeacherDashboard from './components/teacher/TeacherDashboard'
+import JoinHomework from './components/student/JoinHomework'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import LoginButton from './components/LoginButton'
 import UserHistory from './components/UserHistory'
 import { API_URL } from './config'
 
-function App() {
-  const [currentView, setCurrentView] = useState('main') // 'main' | 'assessment'
+function AppContent() {
+  const { user, isAuthenticated, becomeTeacher } = useAuth()
+  const [currentView, setCurrentView] = useState('main') // 'main' | 'assessment' | 'teacher' | 'join-homework'
   const [results, setResults] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState({ percent: 0, step: '' })
@@ -137,7 +140,6 @@ function App() {
   }
 
   return (
-    <AuthProvider>
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background gradient effects */}
       <div className="fixed inset-0 -z-10">
@@ -198,6 +200,50 @@ function App() {
                 </svg>
                 <span className="hidden sm:inline">VARK Assessment</span>
               </button>
+              <button
+                onClick={() => setCurrentView(currentView === 'join-homework' ? 'main' : 'join-homework')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 border ${
+                  currentView === 'join-homework'
+                    ? 'bg-kinesthetic/20 text-kinesthetic border-kinesthetic/30 shadow-kinesthetic-glow'
+                    : 'bg-dark-200 text-gray-300 border-white/10 hover:bg-kinesthetic/10 hover:text-kinesthetic hover:border-kinesthetic/30'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span className="hidden sm:inline">My Homework</span>
+              </button>
+              {isAuthenticated && user?.role === 'teacher' && (
+                <button
+                  onClick={() => setCurrentView(currentView === 'teacher' ? 'main' : 'teacher')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 border ${
+                    currentView === 'teacher'
+                      ? 'bg-readwrite/20 text-readwrite border-readwrite/30 shadow-readwrite-glow'
+                      : 'bg-dark-200 text-gray-300 border-white/10 hover:bg-readwrite/10 hover:text-readwrite hover:border-readwrite/30'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                  <span className="hidden sm:inline">Teacher Portal</span>
+                </button>
+              )}
+              {isAuthenticated && user?.role !== 'teacher' && (
+                <button
+                  onClick={async () => {
+                    const result = await becomeTeacher()
+                    if (result.success) {
+                      setCurrentView('teacher')
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 border bg-dark-200 text-gray-300 border-white/10 hover:bg-readwrite/10 hover:text-readwrite hover:border-readwrite/30"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span className="hidden sm:inline">Become Teacher</span>
+                </button>
+              )}
               <LoginButton />
             </div>
           </div>
@@ -214,7 +260,11 @@ function App() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
-        {currentView === 'assessment' ? (
+        {currentView === 'teacher' ? (
+          <TeacherDashboard onBack={() => setCurrentView('main')} />
+        ) : currentView === 'join-homework' ? (
+          <JoinHomework onBack={() => setCurrentView('main')} />
+        ) : currentView === 'assessment' ? (
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-adaptive font-heading mb-2">
@@ -303,6 +353,13 @@ function App() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   )
 }

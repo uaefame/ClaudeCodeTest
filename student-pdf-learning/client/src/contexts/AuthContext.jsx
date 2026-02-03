@@ -52,13 +52,33 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const becomeTeacher = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/teacher/become`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Refresh user data
+        await checkAuthStatus();
+        return { success: true };
+      }
+      return { success: false, error: data.error };
+    } catch (error) {
+      console.error('Become teacher failed:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     user,
     isLoading,
     isAuthenticated,
     login,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    becomeTeacher
   };
 
   return (
