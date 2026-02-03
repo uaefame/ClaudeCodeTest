@@ -71,6 +71,25 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const guestLoginAsTeacher = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/guest-teacher`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return { success: true };
+      }
+      return { success: false, error: data.error };
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -78,7 +97,8 @@ export function AuthProvider({ children }) {
     login,
     logout,
     checkAuthStatus,
-    becomeTeacher
+    becomeTeacher,
+    guestLoginAsTeacher
   };
 
   return (
